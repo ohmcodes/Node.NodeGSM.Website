@@ -1,11 +1,12 @@
 'use strict';
 // Regenerates public/data/site.json (version, feature tables, changelog) from a NodeGSM checkout.
 // The website does not need the app to run; this is only for refreshing the Features / Download pages.
-//   node scripts/sync-app.js [path-to-NodeGSM-checkout]      default: ../Node.WGSM2026
+//   node scripts/sync-app.js [path-to-NodeGSM-checkout]      default: ../Node.NodeGSM (or ../Node.WGSM2026, the old checkout name)
 const fs = require('fs');
 const path = require('path');
 
-const APP = path.resolve(process.argv[2] || path.join(__dirname, '..', '..', 'Node.WGSM2026'));
+const SIBLINGS = ['Node.NodeGSM', 'Node.WGSM2026'].map(n => path.join(__dirname, '..', '..', n));
+const APP = path.resolve(process.argv[2] || SIBLINGS.find(p => fs.existsSync(p)) || SIBLINGS[0]);
 const OUT = path.join(__dirname, '..', 'public', 'data', 'site.json');
 
 function parseFeatures(md) {
@@ -37,7 +38,7 @@ fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify({
   version: pkg.version, name: 'NodeGSM', pluginCount: prev.pluginCount || 0,
   featureCounts: { done: count('✅'), untested: count('🧪'), planned: count('⏳') },
-  groups, changelog, repo: 'https://github.com/ohmcodes/Node.WGSM2026',
+  groups, changelog, repo: 'https://github.com/ohmcodes/Node.NodeGSM',
 }, null, 1));
 // contributing guide page: copy of the Catalogue repo's CONTRIBUTING.md (public/contributing.html renders it)
 const CG = path.resolve(process.argv[3] || path.join(__dirname, '..', '..', 'Node.NodeGSM.Catalogue', 'CONTRIBUTING.md'));

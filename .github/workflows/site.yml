@@ -14,10 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # the converter tests validate their output with the Catalogue's validator (and PLUGINS.md); public repository, read only
+      - uses: actions/checkout@v4
+        with:
+          repository: ohmcodes/Node.NodeGSM.Catalogue
+          path: catalogue
       - uses: actions/setup-node@v4
         with:
           node-version: 24
       - run: npm test
+        env:
+          NODEGSM_CATALOGUE: ${{ github.workspace }}/catalogue
 
   # Static front end only. The community API (ratings/comments) needs the Node server: see README.
   # Set API_URL in public/config.js to your hosted API when using Pages.

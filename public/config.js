@@ -8,7 +8,7 @@ window.NODEGSM_SITE = {
   //   '<url>' -> a backend on another origin, e.g. 'https://api.nodegsm.example/api'
   //   ''      -> force local-only mode (data stays in the visitor's browser)
   API_URL: 'auto',
-  REPO: 'https://github.com/ohmcodes/Node.WGSM2026',                      // the app
+  REPO: 'https://github.com/ohmcodes/Node.NodeGSM',                      // the app
   CATALOGUE_REPO: 'https://github.com/ohmcodes/Node.NodeGSM.Catalogue',    // where plugins are added (pull requests)
   DISCORD: '',   // invite link, shows up in the footer when set
   DOMAIN: '',    // e.g. https://nodegsm.example

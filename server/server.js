@@ -10,11 +10,16 @@
 //   ALLOWED_ORIGINS   CORS allow-list, comma separated, default * (set it when the site and API are on different origins)
 //   TRUST_PROXY=1     read the client IP from X-Forwarded-For (only behind a reverse proxy you control)
 //   SERVE_STATIC=0    API only
+//   GITHUB_TOKEN      optional: a fine-grained token limited to the Catalogue repo (Contents + Pull requests: read/write). With it, approving a converter
+//                     submission opens a DRAFT pull request; without it the owner gets the files and opens the PR by hand. Never logged or returned
+//   GITHUB_REPO       owner/name of the Catalogue (default ohmcodes/Node.NodeGSM.Catalogue); GITHUB_BASE_BRANCH (default main)
+//   GITHUB_API_URL    default https://api.github.com (https only; http only for localhost, used by the tests)
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { Store } = require('./store');
+const submissions = require('./submissions');
 
 const SITE = path.join(__dirname, '..', 'public');
 const DEFAULT_CATALOG_INDEX = 'https://ohmcodes.github.io/Node.NodeGSM.Catalogue/index.json';
@@ -36,8 +41,13 @@ function createApp(opts = {}) {
     origins: (process.env.ALLOWED_ORIGINS || '*').split(',').map((s) => s.trim()).filter(Boolean),
     trustProxy: process.env.TRUST_PROXY === '1',
     serveStatic: process.env.SERVE_STATIC !== '0',
-    rate: { comment: [5, 10 * 60e3], info: [6, 10 * 60e3], rating: [30, 3600e3], download: [1, 10 * 60e3] },
+    githubToken: process.env.GITHUB_TOKEN || '',
+    githubRepo: process.env.GITHUB_REPO || 'ohmcodes/Node.NodeGSM.Catalogue',
+    githubBranch: process.env.GITHUB_BASE_BRANCH || 'main',
+    githubApi: process.env.GITHUB_API_URL || 'https://api.github.com',
   }, opts);
+  // [max, window ms] per hashed IP. submit: 1 per 10 min and 3 per day (only accepted submissions count); submitTry: every attempt
+  o.rate = Object.assign({ comment: [5, 10 * 60e3], info: [6, 10 * 60e3], rating: [30, 3600e3], download: [1, 10 * 60e3], submit: [1, 10 * 60e3], submitDay: [3, 24 * 3600e3], submitTry: [30, 10 * 60e3], submitStatus: [60, 10 * 60e3] }, opts.rate);
   const store = new Store(path.join(o.dataDir, 'community.json'));
 
   // known plugin ids (refreshed at most every 10 minutes)
@@ -67,6 +77,9 @@ function createApp(opts = {}) {
     let h = hits.get(k); if (!h || h[1] < n) { h = [0, n + win]; hits.set(k, h); }
     if (++h[0] > max) throw new HttpError(429, 'Too many requests, please try again later');
   };
+  // check without counting / count without checking (used for submissions: a rejected attempt must not burn the quota)
+  const limitCheck = (kind, ip) => { const [max] = o.rate[kind]; const h = hits.get(kind + '|' + ip + '|'); if (h && h[1] >= Date.now() && h[0] >= max) throw new HttpError(429, 'Too many submissions, please try again later'); };
+  const limitHit = (kind, ip) => { const [, win] = o.rate[kind]; const k = kind + '|' + ip + '|'; const n = Date.now(); let h = hits.get(k); if (!h || h[1] < n) { h = [0, n + win]; hits.set(k, h); } h[0]++; };
   const ipOf = (req) => {
     let ip = req.socket.remoteAddress || '';
     if (o.trustProxy && req.headers['x-forwarded-for']) ip = String(req.headers['x-forwarded-for']).split(',')[0].trim();
@@ -84,9 +97,9 @@ function createApp(opts = {}) {
   });
 
   // ---- http plumbing
-  const readJson = (req) => new Promise((resolve, reject) => {
-    const chunks = []; let n = 0;
-    req.on('data', (c) => { n += c.length; if (n > LIMITS.body) { reject(new HttpError(413, 'Request too large')); req.destroy(); } else chunks.push(c); });
+  const readJson = (req, max) => new Promise((resolve, reject) => {
+    const chunks = []; let n = 0; max = max || LIMITS.body;
+    req.on('data', (c) => { n += c.length; if (n > max) { reject(new HttpError(413, 'Request too large')); req.destroy(); } else chunks.push(c); });
     req.on('end', () => { if (!n) return resolve({}); try { const j = JSON.parse(Buffer.concat(chunks).toString('utf8')); resolve(j && typeof j === 'object' ? j : {}); } catch { reject(new HttpError(400, 'Invalid JSON')); } });
     req.on('error', reject);
   });
@@ -104,15 +117,18 @@ function createApp(opts = {}) {
     res.end(b);
   };
 
+  const subs = submissions.create({ o, store, knownIds, HttpError, send, readJson, limit, limitCheck, limitHit, ipOf, isAdmin, clean });
+
   // ---- API
   async function api(req, res, url) {
     const parts = url.pathname.replace(/^\/api\/?/, '').split('/').filter(Boolean);
     const m = req.method;
-    if (parts[0] === 'health' && m === 'GET') return send(res, 200, { ok: true, service: 'nodegsm-community', admin: !!o.adminToken });
+    if (parts[0] === 'health' && m === 'GET') return send(res, 200, { ok: true, service: 'nodegsm-community', admin: !!o.adminToken, submissions: true });
     if (parts[0] === 'ratings' && m === 'GET') {
       const out = {}; for (const [id, p] of Object.entries(store.data.plugins)) { const r = rating(p); if (r.count || p.downloads) out[id] = { avg: r.avg, count: r.count, downloads: p.downloads }; }
       return send(res, 200, out);
     }
+    if (parts[0] === 'submissions') return subs.handle(req, res, parts);
     if (parts[0] !== 'plugins' || !parts[1]) throw new HttpError(404, 'Not found');
     const id = pluginId(parts[1]); const what = parts[2]; const ip = ipOf(req);
 
@@ -199,7 +215,7 @@ function createApp(opts = {}) {
     } catch (e) {
       if (res.headersSent) return res.end();
       const status = e.status || 500; if (status === 500) console.error(e);
-      send(res, status, { error: status === 500 ? 'Server error' : e.message });
+      send(res, status, Object.assign({ error: status === 500 ? 'Server error' : e.message }, e.errors ? { errors: e.errors.slice(0, 20) } : {}));
     }
   });
   server.store = store;

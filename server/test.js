@@ -5,6 +5,8 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { createApp } = require('./server');
+const converterTests = require('./test-convert');
+const submissionTests = require('./test-submissions');
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ngsm-site-'));
 const index = path.join(dir, 'index.json');
@@ -26,6 +28,7 @@ const call = async (base, method, p, body, headers) => {
 const A = { 'X-Client-Id': 'client-aaaaaa' }, B = { 'X-Client-Id': 'client-bbbbbb' };
 
 (async () => {
+  converterTests.run(ok);
   let { s, base } = await boot();
   let r = await call(base, 'GET', '/api/health');
   assert.strictEqual(r.json.service, 'nodegsm-community'); ok('health');
@@ -83,6 +86,8 @@ const A = { 'X-Client-Id': 'client-aaaaaa' }, B = { 'X-Client-Id': 'client-bbbbb
   await call(base, 'POST', '/api/plugins/mc/comments', { text: 'one one' }, A); await call(base, 'POST', '/api/plugins/mc/comments', { text: 'two two' }, A);
   assert.strictEqual((await call(base, 'POST', '/api/plugins/mc/comments', { text: 'three three' }, A)).status, 429); ok('rate limit');
   await new Promise((x) => s.close(x));
+
+  await submissionTests.run({ boot, call, ok });
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(`\n${pass} checks passed`);
 })().catch((e) => { console.error('FAILED', e); process.exit(1); });

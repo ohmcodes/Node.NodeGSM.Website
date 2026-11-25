@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plugin submissions (admin)</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#05060d">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="admin">
+<main>
+<div class="ph wrap"><h1>Plugin <span class="grad">submissions</span></h1>
+  <p>Moderation view for the converter submissions. Needs the server's <code>ADMIN_TOKEN</code>; the token stays in this page's memory only (never stored). Submission text is untrusted and is shown as plain text.</p></div>
+<section style="padding-top:18px"><div class="wrap cv">
+  <div class="card">
+    <label class="lbl" for="tok">Admin token</label>
+    <div class="cv-row"><input class="in" id="tok" type="password" autocomplete="off" spellcheck="false"><button class="btn sm primary" type="button" id="load">Load submissions</button></div>
+    <p id="msg" class="cv-msg" role="status" aria-live="polite"></p>
+  </div>
+  <div id="list"></div>
+</div></section>
+</main>
+<script src="config.js"></script>
+<script src="layout.js"></script>
+<script src="admin-submissions.js"></script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Convert a WindowsGSM plugin</title>
+<meta name="description" content="Turn a WindowsGSM C# plugin into a NodeGSM plugin.json. Runs in your browser; nothing is sent unless you choose to submit it.">
+<meta name="theme-color" content="#05060d">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="convert">
+<main>
+<div class="ph wrap"><h1>Convert a <span class="grad">WindowsGSM</span> plugin</h1>
+  <p>Paste or upload the C# file of a WindowsGSM plugin and get a NodeGSM <code>plugin.json</code>, a README and a pull request description. The conversion runs in your browser: nothing is sent anywhere until you press <b>Submit</b> in the last option.</p></div>
+
+<section style="padding-top:18px"><div class="wrap cv">
+
+  <div class="card">
+    <h2>1. The C# plugin</h2>
+    <label class="lbl" for="src">Paste the .cs file</label>
+    <textarea id="src" class="in cv-src" spellcheck="false" autocomplete="off" placeholder="namespace WindowsGSM.Plugins { public class MyGame { public Plugin Plugin = new Plugin { ... }; ... } }"></textarea>
+    <div class="cv-row">
+      <label class="btn sm" for="file">Choose a .cs file</label>
+      <input class="sr" type="file" id="file" accept=".cs,text/plain,text/x-csharp">
+      <button class="btn sm" type="button" id="sample">Load an example</button>
+      <button class="btn sm" type="button" id="clear">Clear</button>
+      <span class="mute cv-small" id="size"></span>
+    </div>
+    <p class="mute cv-small">Text only: the file is read as text, never compiled or run. Max 200 KB.</p>
+    <p id="srcMsg" class="cv-msg" role="status" aria-live="polite"></p>
+  </div>
+
+  <div class="card" id="detCard" hidden>
+    <h2>2. What was detected</h2>
+    <div class="cv-fields">
+      <div><label class="lbl" for="fId">Plugin id</label><input class="in" id="fId" maxlength="32" autocomplete="off" spellcheck="false" aria-describedby="idHelp"><small class="mute" id="idHelp">a-z 0-9 _ - (2-32). Becomes the folder name <code>plugins/&lt;id&gt;</code>.</small></div>
+      <div><label class="lbl" for="fName">Name</label><input class="in" id="fName" maxlength="100" autocomplete="off"></div>
+      <div><label class="lbl" for="fAuthor">Author (maker of the plugin)</label><input class="in" id="fAuthor" maxlength="100" autocomplete="off"></div>
+      <div><label class="lbl" for="fExe">Server executable</label><input class="in" id="fExe" maxlength="200" autocomplete="off" spellcheck="false"><small class="mute">Relative to the server files folder, <code>/</code> separators.</small></div>
+    </div>
+    <p id="errMsg" class="cv-msg err" role="alert"></p>
+    <div class="scroll"><table class="tbl cv-det" id="det"><tbody></tbody></table></div>
+  </div>
+
+  <div class="cv-two" id="msgCard" hidden>
+    <div class="card"><h3>Warnings <span class="tag" id="wCount"></span></h3><p class="mute cv-small">Things the converter was not sure about.</p><ul class="cv-list" id="warnings"></ul></div>
+    <div class="card"><h3>TODO <span class="tag" id="tCount"></span></h3><p class="mute cv-small">Real C# code cannot be converted automatically: this is what a human still has to do (see <a id="pluginsDoc" href="#" target="_blank" rel="noopener">PLUGINS.md</a> for <code>plugin.js</code> hooks).</p><ul class="cv-list" id="todos"></ul></div>
+  </div>
+
+  <div class="card" id="outCard" hidden>
+    <h2>3. The result</h2>
+    <div class="tabs" role="tablist" aria-label="Generated files">
+      <button type="button" role="tab" id="tab-json" aria-controls="outPre" aria-selected="true" class="on" data-tab="json">plugin.json</button>
+      <button type="button" role="tab" id="tab-readme" aria-controls="outPre" aria-selected="false" data-tab="readme">README.md</button>
+      <button type="button" role="tab" id="tab-pr" aria-controls="outPre" aria-selected="false" data-tab="pr">PR body</button>
+    </div>
+    <pre class="cv-out" id="outPre" role="tabpanel" tabindex="0"></pre>
+    <div class="cv-row">
+      <button class="btn sm primary" type="button" id="copy">Copy</button>
+      <button class="btn sm" type="button" id="download">Download</button>
+      <button class="btn sm" type="button" id="zip">Download plugin folder (.zip)</button>
+      <span class="mute cv-small" id="copyMsg" role="status" aria-live="polite"></span>
+    </div>
+    <p class="mute cv-small">The zip contains <code>&lt;id&gt;/plugin.json</code> and <code>&lt;id&gt;/README.md</code>. You still need an <code>icon.png</code> and <code>docs</code> links before the plugin can be added to the Catalogue.</p>
+  </div>
+
+  <div class="card" id="actCard" hidden>
+    <fieldset class="cv-fs">
+      <legend><h2>4. What do you want to do with it?</h2></legend>
+      <label class="opt"><input type="radio" name="mode" value="convert" checked><span><b>Convert only</b><br><span class="mute">Copy or download the files and do whatever you like with them.</span></span></label>
+      <label class="opt"><input type="radio" name="mode" value="guided"><span><b>Convert + guided pull request</b><br><span class="mute">Step by step: fork the Catalogue, add the files on GitHub, open the pull request. Needs a GitHub account.</span></span></label>
+      <label class="opt" id="autoOpt"><input type="radio" name="mode" value="auto" aria-describedby="autoWhy"><span><b>Automated: send to the owners for approval</b> <span class="tag">no GitHub account needed</span><br><span class="mute" id="autoWhy">Checking whether the submission service is available...</span></span></label>
+    </fieldset>
+
+    <div class="cv-panel" id="p-convert">
+      <p class="mute">Use the Copy / Download buttons above. Nothing leaves your browser.</p>
+    </div>
+
+    <div class="cv-panel" id="p-guided" hidden>
+      <ol class="cv-steps">
+        <li><b>Fork the Catalogue.</b> Open <a id="g-repo" href="#" target="_blank" rel="noopener">the Catalogue repository</a> and press <b>Fork</b>. (If you skip this, GitHub offers to fork it when you add the first file.)</li>
+        <li><b>Add <code>plugin.json</code>.</b> <a id="g-json" href="#" target="_blank" rel="noopener">Open the new-file page</a> <span id="g-json-note" class="mute"></span></li>
+        <li><b>Add <code>README.md</code>.</b> <a id="g-readme" href="#" target="_blank" rel="noopener">Open the new-file page</a> <span id="g-readme-note" class="mute"></span></li>
+        <li><b>Add <code>icon.png</code></b> (square PNG, 64-256 px): in the same folder use <b>Add file &rarr; Upload files</b>.</li>
+        <li><b>Open the pull request</b> from your branch and paste the PR body: <button class="btn sm" type="button" id="g-copy-pr">Copy PR body</button> <span class="mute cv-small" id="g-msg" role="status" aria-live="polite"></span></li>
+      </ol>
+      <p><b>Before you open it</b></p>
+      <ul class="cv-check">
+        <li><label><input type="checkbox"> <code>icon.png</code> added (official icon, for identification only)</label></li>
+        <li><label><input type="checkbox"> <code>docs</code> links added to <code>plugin.json</code> (official first) and I opened each one</label></li>
+        <li><label><input type="checkbox"> README checked and the TODO lines resolved or removed</label></li>
+        <li><label><input type="checkbox"> Tried in NodeGSM: <i>Games &rarr; Install plugin (folder)</i>, install, start, stop</label></li>
+        <li><label><input type="checkbox"> <code>npm test</code> passes in the Catalogue (or wait for the CI result on the PR)</label></li>
+      </ul>
+      <p class="mute cv-small">Details: the <a href="contributing.html">contributing guide</a>. The pre-filled link puts the file text in the address (it only goes to github.com), which is why very long files fall back to copy and paste.</p>
+    </div>
+
+    <div class="cv-panel" id="p-auto" hidden>
+      <div class="note" id="autoOff" hidden></div>
+      <div id="autoForm">
+        <p class="mute">The owners review your submission and, once approved, a draft pull request is opened for you in the Catalogue. You do not need a GitHub account. <b>Only <code>plugin.json</code> and <code>README.md</code> are accepted, never code (<code>plugin.js</code>).</b></p>
+        <label class="lbl" for="contact">Contact (optional)</label>
+        <input class="in" id="contact" maxlength="100" autocomplete="off" aria-describedby="contactHelp">
+        <small class="mute" id="contactHelp">An e-mail or a handle, only if the owners need to ask you something. Stored as plain text with your submission, visible to the owners only, never shown publicly. Leave empty to stay anonymous.</small>
+        <label class="opt cv-consent"><input type="checkbox" id="consent"><span>I agree this plugin may be published under the repository licence (<a id="licence" href="#" target="_blank" rel="noopener">MIT</a>), and that I have the right to share it (it is my own work or its licence allows it).</span></label>
+        <details class="cv-small mute"><summary>What exactly is sent when I press Submit?</summary>
+          <p>The C# text you pasted (the server converts it again and checks the result; only its fingerprint is kept, not the C#), the id / name / author / executable shown above, your optional contact and the consent. Your IP address is only used as a hash for rate limits (3 per day, 1 per 10 minutes). Nothing is sent before you press the button.</p></details>
+        <p><button class="btn primary" type="button" id="submit" disabled>Submit for approval</button> <span class="cv-small mute" id="submitHint"></span></p>
+        <p id="subMsg" class="cv-msg" role="status" aria-live="polite"></p>
+      </div>
+      <div id="statusBox" class="cv-status">
+        <h3>Check a submission</h3>
+        <div class="cv-row"><label class="sr" for="sid">Submission id</label><input class="in" id="sid" placeholder="sub_0123456789ab" maxlength="20" autocomplete="off" spellcheck="false"><button class="btn sm" type="button" id="check">Check status</button></div>
+        <p id="stMsg" class="cv-msg" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+</div></section>
+</main>
+<script src="config.js"></script>
+<script src="layout.js"></script>
+<script src="convert-cs.js"></script>
+<script src="convert.js"></script>
+</body>
+</html>

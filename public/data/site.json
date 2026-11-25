@@ -3,21 +3,21 @@
  "name": "NodeGSM",
  "pluginCount": 46,
  "featureCounts": {
-  "done": 71,
+  "done": 74,
   "untested": 38,
-  "planned": 9
+  "planned": 5
  },
  "groups": [
   {
    "group": "Plugins (every game is a plugin)",
    "rows": [
     {
-     "feature": "All 46 games are plugins in `plugins/<id>/`",
+     "feature": "All 46 games are plugins in the **Catalogue repository** (`plugins/<id>/` there), none in the app repo",
      "status": "✅",
-     "notes": "Edit/fix a game with a pull request - [CONTRIBUTING.md](CONTRIBUTING.md)"
+     "notes": "Fix a game with a pull request to the Catalogue: [CONTRIBUTING.md](CONTRIBUTING.md)"
     },
     {
-     "feature": "Declarative `plugin.json` + JSON Schema (`plugins/plugin.schema.json`)",
+     "feature": "Declarative `plugin.json` + JSON Schema (`plugin.schema.json` in the Catalogue)",
      "status": "✅",
      "notes": "Editor auto-complete; format reference in [PLUGINS.md](PLUGINS.md)"
     },
@@ -39,7 +39,7 @@
     {
      "feature": "Documentation links (`docs`): official and unofficial guides per game",
      "status": "✅",
-     "notes": "Grouped Official / Unofficial in the **Games** browser; exported in `registry.json`; at least one required for repository plugins. All 46 built-ins have links (Valve/SteamDB patterns + well-known guides)"
+     "notes": "Grouped Official / Unofficial in the **Games** browser; published in the catalogue; at least one required for catalogue plugins. All 46 have links (Valve/SteamDB patterns + well-known guides)"
     },
     {
      "feature": "Install steps: `steamcmd`, `download`, `extract`, `run` (other installers), `write`, `mkdir`, `script`",
@@ -77,14 +77,14 @@
      "notes": "Fix an obsolete game without waiting for a PR"
     },
     {
-     "feature": "Validation with visible errors; `npm run validate:plugins`",
+     "feature": "Validation with visible errors (the app) and `npm run validate` / CI in the Catalogue repository",
      "status": "✅",
-     "notes": "Same checks run in CI on pull requests"
+     "notes": "Same rules; the Catalogue keeps a copy in `scripts/lib/validate.js`"
     },
     {
-     "feature": "`plugins/registry.json` for the website (`npm run registry`)",
+     "feature": "Catalogue built as static files by the Catalogue repository (`npm run build`): `catalogue.json`, `index.json`, `plugins/<id>.json`, deterministic zips + sha256, media",
      "status": "✅",
-     "notes": "id, metadata, ports, configs, logs and relative media paths"
+     "notes": "Needs only Node, not the app; published with GitHub Pages"
     },
     {
      "feature": "Game browser in the app (search, README, screenshots, defaults, configs/logs)",
@@ -102,14 +102,19 @@
      "notes": "Validated (relative paths only, regexes must compile, `rcon:` sources must have the `rcon:<port>:<password>` shape), in the schema, template, `toGame()` and `registry.json`; all of them are used by the app"
     },
     {
-     "feature": "Converter for WindowsGSM C# plugins",
-     "status": "⏳",
-     "notes": "Manual mapping table in PLUGINS.md for now"
+     "feature": "Converter for WindowsGSM C# plugins (website page `convert.html`, `public/convert-cs.js` in the Website repository)",
+     "status": "✅",
+     "notes": "Pure text parsing, no dependencies, never runs the C#: `plugin.json` + README + PR body; custom `Install()` / `Update()` / RCON etc. are reported as TODOs, never guessed. Output checked against the Catalogue validator. What converts: Catalogue `CONTRIBUTING.md`"
     },
     {
-     "feature": "Online plugin repository / one-click install from the website",
-     "status": "⏳",
-     "notes": ""
+     "feature": "Website: guided pull request and **automated submission** of a converted plugin (`POST /api/submissions`, owner approval, optional draft PR to the Catalogue through the GitHub REST API)",
+     "status": "🧪",
+     "notes": "Only `plugin.json` + `README.md` are accepted (never `plugin.js`); needs the Website backend (not GitHub Pages) and optionally `GITHUB_TOKEN`; tested against a fake local GitHub only"
+    },
+    {
+     "feature": "**In-app catalogue** (Games → Catalogue): list downloaded once and cached, refreshed at most daily or on demand, search, one-click install / update, sha256 check, `plugin.js` warning",
+     "status": "✅",
+     "notes": "`src/main/catalogue.js`; address configurable (`catalogueUrl`, https or a local folder); tested with a local folder, not against the live Pages site yet"
     },
     {
      "feature": "Scanning of `logging.logFiles` (game log files) by the NGSM log",
@@ -119,37 +124,27 @@
    ]
   },
   {
-   "group": "Website (`website/`)",
+   "group": "Catalogue and website (separate repositories)",
    "rows": [
     {
-     "feature": "Dark futuristic site: Home, Features & changelog, Plugins, Download",
+     "feature": "**Catalogue repository** (https://github.com/ohmcodes/Node.NodeGSM.Catalogue): plugins, validator, build, tests, PR template, Pages publish workflow",
      "status": "✅",
-     "notes": "No framework; `npm run site:serve` to run it"
+     "notes": "Static files, no API server; independent of the app"
     },
     {
-     "feature": "Plugin **catalog** (`index.json` + `zips/` + `icons/`, sha256, `hasScript`, docs links) built by `npm run catalog` / `npm run site`",
+     "feature": "Website repository (https://github.com/ohmcodes/Node.NodeGSM.Website): Home, Features & changelog, Plugins, Download",
      "status": "✅",
-     "notes": "Site reads `CATALOG_URL`, so it can use a catalog published from a separate plugins repo; nothing is hard-coded"
+     "notes": "Reads the catalogue from `CATALOG_URL`; feature tables from `npm run sync:app`"
     },
     {
-     "feature": "Feature tables + changelog generated from `FEATURES.md`",
+     "feature": "Plugin cards: image, title, maker (+ contributors), short summary, rating; click for the full detail (README, docs, ports, screenshots, zip)",
      "status": "✅",
-     "notes": ""
+     "notes": "Detail fetched on demand from `plugins/<id>.json`"
     },
     {
-     "feature": "Logo in the header and as favicon (`assets/favicon.png`, mark `assets/logo.png`)",
-     "status": "🧪",
-     "notes": "Generated by `npm run icons`; not looked at in a browser on the live site"
-    },
-    {
-     "feature": "Plugins page: forgiving search (\"7daytodie\", \"7 days to die\", \"7dtd\", typos), tag filter, sort (name / rating / downloads / players), detail drawer, official + unofficial doc links, zip download, `plugin.js` warning",
+     "feature": "Website backend (no dependencies): ratings, comments, editable community info with revisions, download counts, moderation",
      "status": "✅",
-     "notes": "Deep links like `plugins.html#rust`"
-    },
-    {
-     "feature": "**Own backend** (`website/server/`, no dependencies): ratings, comments, editable community info with revisions, download counts, admin moderation",
-     "status": "✅",
-     "notes": "Rate limits, size limits, link-spam limit, hashed IPs; tests: `npm run test:site`. No accounts/CAPTCHA/moderation UI yet"
+     "notes": "Website data, separate from the plugin repo; accepts only plugin ids present in the catalogue"
     },
     {
      "feature": "Same UI without the backend",
@@ -157,19 +152,9 @@
      "notes": "Falls back to per-browser storage (shown with a notice)"
     },
     {
-     "feature": "GitHub Pages deploy workflow (static part only)",
+     "feature": "GitHub Pages workflows (Catalogue: publish; Website: static front end)",
      "status": "🧪",
-     "notes": "`.github/workflows/site.yml`; Pages cannot run the backend, so set `API_URL` to a hosted API"
-    },
-    {
-     "feature": "Online plugin catalog in the app (enable online, install, update from the catalog)",
-     "status": "⏳",
-     "notes": "Designed: same `index.json`, sha256-verified, warn on `plugin.js`"
-    },
-    {
-     "feature": "Separate plugins repository with PR validation + catalog publish",
-     "status": "⏳",
-     "notes": "`scripts/build-catalog.js` is ready to move"
+     "notes": "Written, not run yet: enable Pages in both repositories"
     },
     {
      "feature": "Releases / download buttons",
@@ -614,7 +599,17 @@
     {
      "feature": "Legacy data folder kept after rename",
      "status": "✅",
-     "notes": "`%APPDATA%\\node-wgsm2026\\WGSM` if present, else `%APPDATA%\\NodeGSM`; on Linux `$XDG_DATA_HOME/NodeGSM` (default `~/.local/share/NodeGSM`)"
+     "notes": "`%APPDATA%\\node-wgsm2026\\WGSM` if present, else `%APPDATA%\\NodeGSM`; on Linux `$XDG_DATA_HOME/NodeGSM` (default `~/.local/share/NodeGSM`); Settings can move it to the NodeGSM folder"
+    },
+    {
+     "feature": "Choose the data folder (Settings -> Data location)",
+     "status": "✅",
+     "notes": "**Change folder...** copies everything to an empty folder with progress, then restarts; **Use existing data...** points at a folder that already holds NodeGSM data; **Use the standard folder**; the old folder is never deleted; refused while a server runs or an install / update is in progress; stored in `data-location.txt` outside the data folder; `NODEGSM_DATA` overrides it"
+    },
+    {
+     "feature": "Installer asks for the data folder",
+     "status": "✅",
+     "notes": "NSIS page after the install-folder page (skipped for silent installs and when a folder was already chosen); the portable .exe uses Settings instead"
     },
     {
      "feature": "Documentation: guides, `TECH-api.md` (all IPC channels), `TECH-architecture.md`, `TECH-data-formats.md`, `docs/README.md` index, `OPEN-QUESTIONS.md`, `TESTING-CHECKLIST.md`",
@@ -625,6 +620,44 @@
   }
  ],
  "changelog": [
+  {
+   "title": "2026-11-25 - Choose where NodeGSM keeps its data",
+   "items": [
+    "**Settings -> Data location:** shows the data folder and lets you **Change folder...** (copy to an empty folder with progress, switch, restart), **Use existing data...** (switch without copying) or **Use the standard folder** (moves the pre-NodeGSM folder `%APPDATA%\\node-wgsm2026\\WGSM` to `%APPDATA%\\NodeGSM`). The old folder is kept; the move is refused while servers run, installs / updates are in progress, the target is not empty, the disk is too small, or `NODEGSM_DATA` is set.",
+    "**Installer:** new \"Data folder\" page (Browse...). Silent installs and re-installs keep the current choice.",
+    "**How it is stored:** `%APPDATA%\\NodeGSM\\data-location.txt` (Linux: `~/.config/NodeGSM/data-location.txt`), read before anything else; order is `NODEGSM_DATA` > this file > pre-NodeGSM folder > standard folder.",
+    "**API:** `dataLocation`, `dataLocationPlan`, `dataLocationMove`, `dataLocationOpenOld`, event `dataLocation:progress` (desktop only).",
+    "**Tests:** pointer parsing (BOM / CRLF / relative), precedence, plan rejections, copy + progress + cleanup after a failed copy, use-existing, API guards."
+   ]
+  },
+  {
+   "title": "2026-11-25 - WindowsGSM plugin converter on the website",
+   "items": [
+    "**Added:** a converter page (`/convert.html`) in the Website repository: paste or upload a WindowsGSM C# plugin and get a NodeGSM `plugin.json`, a README and a pre-filled pull request description. `public/convert-cs.js` is dependency-free and only reads text (it never compiles or runs the C#); real code (custom install / update, RCON ...) is listed as warnings / TODOs pointing to `plugin.js` hooks, never guessed.",
+    "**Three ways to use the result:** convert only (copy / download / zip), a guided pull request (fork, pre-filled GitHub new-file links, PR body, checklist for icon / docs), or an automated submission to the owners (no GitHub account needed, optional contact, licence consent, status check). Automated submissions are stored as `pending`, rate limited (1 per 10 minutes, 3 per day per hashed IP), moderated with `ADMIN_TOKEN`, and an approval opens a **draft** PR in the Catalogue when `GITHUB_TOKEN` is configured (otherwise the files are returned for a manual PR).",
+    "**Docs:** Website README (feature, backend env vars, moderation, privacy, hosting), Catalogue `CONTRIBUTING.md` / `README.md` / `PLUGINS.md` (what converts and what does not), PR template, this file, `CONTRIBUTING.md`, `PLUGINS.md`, `docs/OPEN-QUESTIONS.md`.",
+    "**Not done / not verified:** never run against the real GitHub API or a real production backend (fake local GitHub only); no captcha; plugin.js conversions are not accepted."
+   ]
+  },
+  {
+   "title": "2026-11-25 - GitHub repository renamed to Node.NodeGSM",
+   "items": [
+    "**Changed:** the app repository is now https://github.com/ohmcodes/Node.NodeGSM (was Node.WGSM2026). Links in CONTRIBUTING.md, docs/GUIDE-web-linux.md, the Catalogue (README, PLUGINS.md) and the Website (README, config, Download page, `sync-app.js`, site data) were updated; GitHub redirects the old URL.",
+    "**Kept:** the legacy data folder `%APPDATA%\\node-wgsm2026\\WGSM` and the internal names (`wgsm.json`, `.wgsm-version`, `window.wgsm`) are unchanged on purpose.",
+    "**Website:** `npm run sync:app` now looks for `../Node.NodeGSM` first and falls back to the old `../Node.WGSM2026` checkout folder name."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Project separation: Catalogue and Website repositories, in-app catalogue",
+   "items": [
+    "**Why:** the plugin list and the website do not belong in the app repository. Games are community-contributed and the site has its own data (ratings, comments), so each now lives, builds and deploys on its own.",
+    "**Catalogue** (https://github.com/ohmcodes/Node.NodeGSM.Catalogue): all 46 plugins + `plugin.schema.json` + `_template`, standalone validator (`scripts/lib/validate.js`, copy of the app's rules), `scripts/build-catalog.js`, tests, PR/issue templates and a Pages workflow. It publishes **static files**, not an API: `catalogue.json` (tiny change marker with a hash), `index.json` (lean list), `plugins/<id>.json` (README, docs, ports ...), `zips/`, `media/`. New optional plugin fields: `summary` (card text), `contributors`; `author` is the maker.",
+    "**Website** (https://github.com/ohmcodes/Node.NodeGSM.Website): moved `website/` (public/, server/, tests), now reads the catalogue from `CATALOG_URL` (default the Catalogue's GitHub Pages address). Plugin cards show image, title, maker, short summary, rating; clicking opens the detail drawer (fetched on demand). The backend validates plugin ids against the published index. `npm run sync:app` regenerates the Features/changelog data from this repo's `FEATURES.md`.",
+    "**App:** new `src/main/catalogue.js` + API `catalogueState` / `catalogueRefresh` / `catalogueDetail` / `catalogueInstall` + **Games → Catalogue** screen. The list is downloaded once and kept in `<data>/catalogue/`; it is re-checked at most once a day (or via Refresh), asking only `catalogue.json` first. Installs are sha256-verified and go to `<data>/plugins`. New setting `catalogueUrl` (https URL or local folder, default the official catalogue).",
+    "**Removed from this repo:** `plugins/`, `website/`, `catalog/`, `scripts/build-registry.js`, `build-catalog.js`, `build-site.js`, `validate-plugins.js`, `.github/workflows/site.yml`, `registry.json` and the npm scripts `registry`, `site`, `catalog`, `site:serve`, `test:site`, `validate:plugins`. The packaged app no longer ships games: they are installed from the catalogue (the first run needs internet; installed plugins work offline).",
+    "**Dev/test:** `plugins.js` reads a read-only bundled folder from `NODEGSM_BUNDLED_PLUGINS`, `<app>/plugins`, or (unpackaged only) the sibling `..\\Node.NodeGSM.Catalogue\\plugins`. CI checks the Catalogue out. `npm test` gained catalogue client tests (cache, change detection, install, tampered zip refused)."
+   ]
+  },
   {
    "title": "2026-11-25 - Discord bot: per-user per-server permission rules",
    "items": [
@@ -819,7 +852,7 @@
   {
    "title": "2026-11-24 - Earlier",
    "items": [
-    "**Docs rule:** FEATURES.md, README.md, CLAUDE.md added; every change updates docs.",
+    "**Docs rule:** FEATURES.md and README.md added, plus a project rules file; every change updates docs.",
     "**Renamed to NodeGSM.** User-visible names changed; internal names (`wgsm.json`, `.wgsm-version`) kept. Legacy data folder still used if it exists. Firewall rules are now named `NodeGSM #...`.",
     "**Install progress and honest results.** Percent/GB progress; install fails if the download did not complete or the exe is missing; SteamCMD self-updates on first run (previously exit code 7 was wrongly treated as success).",
     "**First plugin system** (flat `plugin.json`), Plugins dialog, Palworld example.",
@@ -828,5 +861,5 @@
    ]
   }
  ],
- "repo": "https://github.com/ohmcodes/Node.WGSM2026"
+ "repo": "https://github.com/ohmcodes/Node.NodeGSM"
 }

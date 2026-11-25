@@ -1,4 +1,4 @@
-// Shared nav + footer + helpers. Every page sets <body data-page="home|download|plugins|features">.
+// Shared nav + footer + helpers. Every page sets <body data-page="home|download|plugins|features|convert">.
 (function () {
   const C = window.NODEGSM_SITE || {};
   const page = document.body.dataset.page;
@@ -7,7 +7,7 @@
   <header class="nav"><div class="wrap">
     <a class="brand" href="index.html"><img src="assets/logo.png" alt="">NodeGSM</a>
     <button class="menu" aria-label="Menu" onclick="this.nextElementSibling.classList.toggle('open')">☰</button>
-    <nav>${link('index.html', 'Home', 'home')}${link('features.html', 'Features', 'features')}${link('plugins.html', 'Plugins', 'plugins')}${link('download.html', 'Download', 'download')}
+    <nav>${link('index.html', 'Home', 'home')}${link('features.html', 'Features', 'features')}${link('plugins.html', 'Plugins', 'plugins')}${link('convert.html', 'Convert', 'convert')}${link('download.html', 'Download', 'download')}
       <a href="${C.REPO}" target="_blank" rel="noopener">GitHub ↗</a></nav>
   </div></header>`);
   document.body.insertAdjacentHTML('beforeend', `
@@ -16,7 +16,7 @@
       <div><a class="brand" href="index.html"><img src="assets/logo.png" alt="">NodeGSM</a>
         <p class="mute" style="font-size:.9rem;max-width:300px">Node Game Server Manager. Install, run and automate game servers with one click. Free and open source.</p></div>
       <div><h4>Product</h4><a href="download.html">Download</a><a href="features.html">Features &amp; changelog</a><a href="plugins.html">Plugins</a></div>
-      <div><h4>Develop</h4><a href="${C.REPO}" target="_blank" rel="noopener">GitHub</a><a href="contributing.html">Add a game (PR guide)</a><a href="${C.CATALOGUE_REPO}/blob/main/PLUGINS.md" target="_blank" rel="noopener">Plugin format</a></div>
+      <div><h4>Develop</h4><a href="${C.REPO}" target="_blank" rel="noopener">GitHub</a><a href="contributing.html">Add a game (PR guide)</a><a href="convert.html">Convert a WindowsGSM plugin</a><a href="${C.CATALOGUE_REPO}/blob/main/PLUGINS.md" target="_blank" rel="noopener">Plugin format</a></div>
       <div><h4>Community</h4>${C.DISCORD ? `<a href="${C.DISCORD}" target="_blank" rel="noopener">Discord</a>` : ''}<a href="${C.REPO}/issues" target="_blank" rel="noopener">Issues</a><a href="${C.CATALOGUE_REPO}/issues/new?template=game-request.md" target="_blank" rel="noopener">Request a game</a></div>
     </div>
     <p class="legal">© ${new Date().getFullYear()} NodeGSM · MIT licensed · An Electron rewrite inspired by WindowsGSM. Not affiliated with WindowsGSM, Valve or any game publisher; game names and icons belong to their owners.</p>
