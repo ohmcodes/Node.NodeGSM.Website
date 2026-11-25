@@ -20,6 +20,8 @@ This repository is independent of the app and of the plugin list:
 `public/contributing.html` renders `public/data/contributing.md`, a copy of the Catalogue repository's `CONTRIBUTING.md` (links in it are rewritten to the Catalogue repo). `npm run sync:app` refreshes the copy from `../Node.NodeGSM.Catalogue`.
 
 ## Plugins page
+The list is paginated: a **Per page** select (10, 20, 50 or 100; remembered in the browser, default 20) and page buttons under the cards; searching, filtering or sorting goes back to page 1.
+
 Each plugin is a card with the **image** of the game, **title**, **maker** (and contributor count), **short description** and **rating**. Click a card for more info: full description, README, documentation links, ports, config files, screenshots, download, comments and the community-editable info.
 
 - **Plugin data** (name, maker, summary, image, README, zip) comes from the Catalogue: `index.json` for the list, `plugins/<id>.json` for the detail of the opened plugin. Set the address in `public/config.js` → `CATALOG_URL` (default `https://ohmcodes.github.io/Node.NodeGSM.Catalogue/`).

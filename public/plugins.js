@@ -35,9 +35,29 @@
   ratings = await Community.summaries();
   $('#total').textContent = data.count;
   $('#chips').innerHTML = ['All'].concat(data.tags).map((t) => `<button class="chip ${t === 'All' ? 'on' : ''}" data-t="${$esc(t === 'All' ? '' : t)}">${$esc(t)}</button>`).join('');
-  $('#chips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; state.tag = b.dataset.t; [...$('#chips').children].forEach((c) => c.classList.toggle('on', c === b)); render(); };
-  $('#q').oninput = (e) => { state.q = e.target.value; render(); };
-  $('#sort').onchange = (e) => { state.sort = e.target.value; render(); };
+  $('#chips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; state.tag = b.dataset.t; state.page = 1; [...$('#chips').children].forEach((c) => c.classList.toggle('on', c === b)); render(); };
+  $('#q').oninput = (e) => { state.q = e.target.value; state.page = 1; render(); };
+  $('#sort').onchange = (e) => { state.sort = e.target.value; state.page = 1; render(); };
+
+  // ---- pagination (page size is remembered in this browser)
+  const SIZES = [10, 20, 50, 100];
+  try { const s = +localStorage.getItem('nodegsm.pageSize'); if (SIZES.includes(s)) state.size = s; } catch { /* storage blocked */ }
+  state.size = state.size || 20; state.page = 1;
+  const pageList = (cur, n) => { // 1 ... 4 5 [6] 7 8 ... 20
+    const s = new Set([1, n, cur - 1, cur, cur + 1]); if (cur <= 3) { s.add(2); s.add(3); } if (cur >= n - 2) { s.add(n - 1); s.add(n - 2); }
+    const a = [...s].filter((x) => x >= 1 && x <= n).sort((x, y) => x - y); const out = [];
+    a.forEach((x, i) => { if (i && x - a[i - 1] > 1) out.push('…'); out.push(x); }); return out;
+  };
+  function drawPager(total, pages, from, count) {
+    const el = $('#pager'); if (!el) return;
+    if (!total) { el.innerHTML = ''; return; }
+    const btn = (label, pg, on, dis) => `<button class="chip ${on ? 'on' : ''}" data-pg="${pg}" ${dis ? 'disabled' : ''} aria-label="${typeof label === 'number' ? 'Page ' + label : label}"${on ? ' aria-current="page"' : ''}>${label}</button>`;
+    el.innerHTML = `<label class="mute" style="font-size:.85rem">Per page <select class="in" id="psize" aria-label="Plugins per page">${SIZES.map((n) => `<option value="${n}" ${n === state.size ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      <span class="mute" style="font-size:.85rem">${from + 1}–${from + count} of ${total}</span>
+      ${pages > 1 ? `<span class="chips" style="margin:0">${btn('‹ Prev', state.page - 1, false, state.page === 1)}${pageList(state.page, pages).map((x) => (x === '…' ? '<span class="mute">…</span>' : btn(x, x, x === state.page))).join('')}${btn('Next ›', state.page + 1, false, state.page === pages)}</span>` : ''}`;
+  }
+  $('#pager').onchange = (e) => { if (e.target.id !== 'psize') return; state.size = +e.target.value; state.page = 1; try { localStorage.setItem('nodegsm.pageSize', state.size); } catch { /* ignore */ } render(); };
+  $('#pager').onclick = (e) => { const b = e.target.closest('button[data-pg]'); if (!b || b.disabled) return; state.page = +b.dataset.pg; render(); $('#list').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
   function render() {
     const q = state.q;
@@ -47,6 +67,9 @@
     const byName = (a, b) => a.name.localeCompare(b.name);
     l.sort(state.sort === 'rating' ? (a, b) => r(b) - r(a) || byName(a, b) : state.sort === 'downloads' ? (a, b) => dl(b) - dl(a) || byName(a, b) : state.sort === 'players' ? (a, b) => (+b.maxPlayers || 0) - (+a.maxPlayers || 0) : q.trim() ? (a, b) => sc.get(b.id) - sc.get(a.id) || byName(a, b) : byName);
     $('#shown').textContent = l.length;
+    const pages = Math.max(1, Math.ceil(l.length / state.size)); state.page = Math.min(Math.max(1, state.page), pages);
+    const from = (state.page - 1) * state.size; const total = l.length; l = l.slice(from, from + state.size);
+    drawPager(total, pages, from, l.length);
     $('#list').innerHTML = l.length ? l.map((p) => {
       const rt = ratings[p.id] || { avg: 0, count: 0 }; const dls = rt.downloads ? ` · ⬇ ${rt.downloads}` : '';
       return `<button class="card pcard reveal" data-id="${$esc(p.id)}">${p.banner ? `<img class="cover" loading="lazy" src="${$esc(p.banner)}" alt="">` : ''}<div class="top"><img loading="lazy" src="${$esc(p.icon)}" alt="${$esc(p.name)}"><div><h3>${$esc(p.name)}</h3><span class="by">by ${$esc(p.maker || 'unknown')}${p.contributors.length ? ' +' + p.contributors.length : ''}</span><span class="mute" style="font-size:.78rem;display:block">v${$esc(p.version)} · ${$esc(p.install)}${dls}${p.hasScript ? ' · script' : ''}</span></div></div>
