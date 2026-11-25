@@ -17,6 +17,7 @@
   <p>The easiest way to deploy game servers on Windows. Free, open source, no account needed.</p>
   <div class="cta" style="margin-top:28px"><a class="btn primary" id="dl" href="#" target="_blank" rel="noopener">⬇ Download for Windows</a><a class="btn" id="all" href="#" target="_blank" rel="noopener">All releases</a></div>
   <p class="mute" style="font-size:.85rem;margin-top:14px">Installer (NSIS) and portable .exe · Windows 10/11 64-bit · builds are currently unsigned, so SmartScreen may warn you</p>
+  <p class="mute" id="dlNote" style="font-size:.85rem;margin-top:4px"></p>
 </div>
 
 <section><div class="wrap">
@@ -54,7 +55,13 @@ npm run dist   # installer + portable exe</code></pre></div>
 </main>
 <script src="config.js"></script>
 <script src="layout.js"></script>
+<script src="community.js"></script>
 <script>
+Community.stats().then((st) => {
+  if (!st || !st.app || st.app.unavailable || !st.app.downloads) return;
+  const l = st.app.latest;
+  document.getElementById('dlNote').textContent = st.app.downloads.toLocaleString() + ' downloads so far' + (l && l.downloads && l.downloads !== st.app.downloads ? ' · ' + l.name + ': ' + l.downloads.toLocaleString() : '');
+});
 (async () => {
   const C = window.NODEGSM_SITE;
   document.getElementById('dl').href = C.REPO + '/releases/latest';

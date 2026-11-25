@@ -1,11 +1,11 @@
 'use strict';
-// Converter tests (public/convert-cs.js).  npm test
+// Converter tests (public/convert-cs.js). Run from server/test.js, or alone: node server/test-convert.js
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const { convertCs, checkSource, validatePluginJson, makeZip, slugify, PLACEHOLDERS } = require('../public/convert-cs.js');
 
-const FIX = path.join(__dirname, 'fixtures');
+const FIX = path.join(__dirname, '..', 'test', 'fixtures');
 const fx = (n) => fs.readFileSync(path.join(FIX, n), 'utf8');
 
 // The Catalogue validator, from the sibling checkout (CI sets NODEGSM_CATALOGUE). Skipped, loudly, when it is not there.

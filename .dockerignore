@@ -1,0 +1,11 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+node_modules
+server/data
+data
+test
+scripts
+*.md

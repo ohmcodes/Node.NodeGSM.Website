@@ -64,6 +64,12 @@
       if (this.mode !== 'api') return { local: true, events: [], topDownloads: [], totals: { downloads: 0, ratings: 0, comments: 0 } };
       return api('/feed?limit=60' + (type ? '&type=' + enc(type) : ''));
     },
+    // site-wide numbers: { app: { downloads, latest, unavailable }, plugins: { downloads, ratings, comments } }; null without the API
+    async stats() {
+      await this.ready;
+      if (this.mode !== 'api') return null;
+      try { return await api('/stats'); } catch { return null; }
+    },
     // { id: {avg,count,downloads} } for the plugin list
     async summaries() {
       await this.ready;

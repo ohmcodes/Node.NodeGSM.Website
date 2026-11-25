@@ -1,0 +1,28 @@
+# The NodeGSM website on port 3013 with persistent data.  Settings come from a .env file next to this one (see .env.example).
+services:
+  website:
+    build: .
+    image: nodegsm-website:latest
+    container_name: nodegsm-website
+    restart: unless-stopped
+    ports:
+      - "3013:3013"
+    environment:
+      PORT: "3013"
+      DATA_DIR: /data
+      # empty = moderation endpoints disabled
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # set to 1 only when a reverse proxy you control (nginx, Caddy, Cloudflare tunnel) sits in front: rate limits then use the real client IP
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+      # optional: lets approving a converter submission open a DRAFT pull request on the Catalogue
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_REPO: ${GITHUB_REPO:-ohmcodes/Node.NodeGSM.Catalogue}
+      # the app whose release downloads are counted on the front page
+      APP_REPO: ${APP_REPO:-ohmcodes/Node.NodeGSM}
+      CATALOG_INDEX: ${CATALOG_INDEX:-https://ohmcodes.github.io/Node.NodeGSM.Catalogue/index.json}
+    volumes:
+      # persistent data (community.json). A named volume keeps the right permissions for the non-root user.
+      - nodegsm-data:/data
+
+volumes:
+  nodegsm-data:

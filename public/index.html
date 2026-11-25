@@ -19,6 +19,7 @@
   <div class="cta"><a class="btn primary" href="download.html">⬇ Download NodeGSM</a><a class="btn" href="plugins.html">Browse <span id="pc">46</span> plugins →</a></div>
   <div class="stats">
     <div class="stat"><b class="grad" id="s1">46</b><span>Game plugins</span></div>
+    <div class="stat" id="dlStat" hidden><b class="grad" id="dlCount">0</b><span>App downloads</span></div>
     <div class="stat"><b class="grad" id="s2">-</b><span>Features shipped</span></div>
     <div class="stat"><b class="grad">1-click</b><span>SteamCMD installs</span></div>
     <div class="stat"><b class="grad">MIT</b><span>Free forever</span></div>
@@ -69,7 +70,14 @@
 </main>
 <script src="config.js"></script>
 <script src="layout.js"></script>
+<script src="community.js"></script>
 <script>
+// total downloads of the app (GitHub releases, counted by the site API); the tile stays hidden without the API or before the first release
+Community.stats().then((st) => {
+  if (!st || !st.app || st.app.unavailable || !st.app.downloads) return;
+  document.getElementById('dlCount').textContent = st.app.downloads.toLocaleString();
+  document.getElementById('dlStat').hidden = false;
+});
 (async () => {
   const C = window.NODEGSM_SITE;
   document.getElementById('prLink').href = 'contributing.html';

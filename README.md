@@ -1,6 +1,6 @@
 # NodeGSM Website
 
-The website of [NodeGSM](https://ohmcodes.github.io/Node.NodeGSM.Website/): **Home**, **Features & changelog**, **Plugins** and **Download**. Dark mode, no framework, no dependencies (Node 18+ for the backend).
+The website of NodeGSM (self-hosted, see Deploy): **Home**, **Features & changelog**, **Plugins** and **Download**. Dark mode, no framework, no dependencies (Node 18+ for the backend).
 
 This repository is independent of the app and of the plugin list:
 
@@ -8,11 +8,10 @@ This repository is independent of the app and of the plugin list:
 |---|---|
 | The app | https://github.com/ohmcodes/Node.NodeGSM |
 | The plugin list (games) | https://github.com/ohmcodes/Node.NodeGSM.Catalogue (the site only **reads** it) |
-| The pages (this repository) | here: static files, hosted on GitHub Pages or any static host |
-| The API that **stores** the site's data (ratings, comments, community info, activity feed, downloads, converter submissions) | https://github.com/ohmcodes/Node.NodeGSM.WebsiteServer |
+| This site, its ratings / comments / community info | here |
 
 ## Activity feed
-`/feed.html` lists recent activity (new and updated plugins, ratings, comments, community info edits, downloads) with type filters, plus a **Most downloaded** list. It needs the WebsiteServer API, because activity comes from every visitor (without it the page says so). The page refreshes every minute.
+`/feed.html` lists recent activity (new and updated plugins, ratings, comments, community info edits, downloads) with type filters, plus a **Most downloaded** list. It needs the site server, because activity comes from every visitor (in local-only mode the page says so). Events live in `community.json`; the page refreshes every minute.
 
 ## Issue templates
 `.github/ISSUE_TEMPLATE/report-issues.md` is a guided template for website problems (page, steps, expected vs actual, browser); `config.yml` points app problems to the app repository and game requests to the Catalogue. The footer's "Report an issue" link opens the app repository's `report-issues.md` template.
@@ -26,31 +25,60 @@ The list is paginated: a **Per page** select (10, 20, 50 or 100; remembered in t
 Each plugin is a card with the **image** of the game, **title**, **maker** (and contributor count), **short description** and **rating**. Click a card for more info: full description, README, documentation links, ports, config files, screenshots, download, comments and the community-editable info.
 
 - **Plugin data** (name, maker, summary, image, README, zip) comes from the Catalogue: `index.json` for the list, `plugins/<id>.json` for the detail of the opened plugin. Set the address in `public/config.js` → `CATALOG_URL` (default `https://ohmcodes.github.io/Node.NodeGSM.Catalogue/`).
-- **Website data** (ratings, comments, community info, download counts, activity feed) is stored by the WebsiteServer API (https://github.com/ohmcodes/Node.NodeGSM.WebsiteServer), never in the plugin repository.
+- **Website data** (ratings, comments, community info, download counts) is stored by this site's backend (`server/`), never in the plugin repository.
 
 ## Run it
 ```
-npm start        # static preview on http://localhost:8080 (scripts/serve.js, no cache)
-npm test         # converter tests (output is validated with a sibling ..\Node.NodeGSM.Catalogue checkout or NODEGSM_CATALOGUE; skipped with a message when absent)
+npm start        # site + community API on http://localhost:3013
+npm test         # backend + converter tests (converter output is validated with a sibling ..\Node.NodeGSM.Catalogue checkout or NODEGSM_CATALOGUE; skipped with a message when absent)
 npm run sync:app # refresh Features / changelog data from a NodeGSM checkout (default ../Node.NodeGSM, falling back to the old ../Node.WGSM2026 folder name)
 ```
-`python -m http.server --directory public` works too. Ratings, comments, the feed and submissions need the API (below); without it the pages still work and ratings / comments stay in the visitor's own browser.
+`python -m http.server --directory public` also works for the static part, but then ratings and comments stay in the visitor's browser (no backend).
 
 To try an unpublished catalogue: build it in the Catalogue repo (`npm run build`), serve `public/` there with CORS (or copy it into this repo's `public/catalogue/`) and set `CATALOG_URL` accordingly.
 
-## Community data (the API)
-Ratings, comments, community info, download counts, the activity feed and converter submissions are stored by the **API in [Node.NodeGSM.WebsiteServer](https://github.com/ohmcodes/Node.NodeGSM.WebsiteServer)** (Docker, port 3013, persistent volume). This repository has no backend. Its endpoints, settings, moderation and backup are documented there.
+## Community backend (`server/`)
+`server.js` serves the static site **and** the API, with no dependencies. Data is one JSON file (`server/data/community.json`, atomic writes, gitignored): back it up. IPs are only stored hashed.
 
-Connect the site to it in `public/config.js`:
-
-| `API_URL` | |
+```
+PORT=3013 ADMIN_TOKEN=<long random> node server/server.js
+```
+| Env | |
 |---|---|
-| `'https://api.example.com/api'` | the API on another host (set `ALLOWED_ORIGINS` there to this site's origin, e.g. `https://ohmcodes.github.io`). The site is https, so the API must be https too |
-| `'http://localhost:3013/api'` | the API on your own machine, for trying things out (works in your browser only) |
-| `'auto'` (default) | `./api` on the same origin, for a reverse proxy that forwards `/api` to the API; falls back to local-only mode when nothing answers |
-| `''` | force local-only mode (data stays in the visitor's browser) |
+| `PORT`, `DATA_DIR` | listen port (default 3013); where `community.json` lives (`/data` in Docker) |
+| `CATALOG_INDEX` | the Catalogue's `index.json` (https URL, refreshed every 10 min, or a local file). Only its plugin ids can receive community data; if it cannot be read any valid id is accepted. Default: the official catalogue |
+| `ADMIN_TOKEN` | enables moderation; unset = disabled |
+| `ALLOWED_ORIGINS` | CORS allow-list when the API is on another origin (default `*`) |
+| `TRUST_PROXY=1` | take the client IP from `X-Forwarded-For` (only behind your own reverse proxy) |
+| `APP_REPO` | `owner/name` of the app whose release downloads are counted on the front page, default `ohmcodes/Node.NodeGSM` |
+| `SERVE_STATIC=0` | API only |
+| `GITHUB_TOKEN` | optional, enables the **automated pull request** of approved converter submissions (see below). Never logged, never returned |
+| `GITHUB_REPO` | `owner/name` of the Catalogue, default `ohmcodes/Node.NodeGSM.Catalogue` (`GITHUB_BASE_BRANCH`, default `main`) |
+| `GITHUB_API_URL` | default `https://api.github.com` (https only; plain http is accepted for localhost, which the tests use with a fake GitHub) |
 
-To check the connection, type `Community.mode` in the browser console: `"api"` = shared data, `"local"` = the API was not reachable (wrong URL, origin not allowed, mixed content).
+Site config `API_URL`: `'auto'` (default; use `./api` if the server answers, else local-only), an absolute URL (API on another host), or `''` (force local-only).
+
+### API (JSON, all under `/api`)
+| Method + path | Body | Notes |
+|---|---|---|
+| `GET /health` | | `{ ok, service:'nodegsm-community', admin, submissions }` |
+| `GET /ratings` | | `{ "<id>": { avg, count, downloads } }` for the plugin list |
+| `GET /stats` | | site-wide numbers: `{ app:{ downloads, releases, latest:{tag,name,at,downloads,files}, updatedAt, unavailable }, plugins:{ downloads, ratings, comments } }`. `app.downloads` is the sum of GitHub's download counts of the app's release files (see *Download counter*) |
+| `GET /feed?type=&limit=` | | activity feed: `{ events:[{t,at,id,...}], topDownloads:[{id,downloads}], totals }`, newest first (`t` = `new`, `update`, `rating`, `comment`, `info`, `download`; `type` filters, `limit` max 100). Holds the last 300 events and never contains client ids or IP hashes. New / updated plugins are detected by comparing two reads of the Catalogue `index.json` (the first read is only a baseline) |
+| `GET /plugins/:id/community` | | `{ rating:{avg,count,mine}, downloads, comments:[{id,name,text,at}], info:{text,rev,by,at,summary,history} }` |
+| `PUT /plugins/:id/rating` | `{ value: 0-5 }` | one rating per `X-Client-Id` (random id the browser generates); `0` removes it (in the drawer: click your star again or "remove it") |
+| `POST /plugins/:id/comments` | `{ text, name }` | max 2000 chars, max 2 links, duplicates rejected |
+| `PUT /plugins/:id/info` | `{ text, name, summary }` | Markdown, max 20000 chars; every save is a revision (last 50 kept) |
+| `POST /plugins/:id/download` | | download counter, once per IP per plugin per 10 min |
+| `DELETE /plugins/:id/comments/:cid` | | admin (`Authorization: Bearer <ADMIN_TOKEN>`) |
+| `POST /plugins/:id/info/revert` | `{ rev }` | admin: restore an older info revision |
+| `POST /submissions` | `{ source` or `pluginJson, id?, edits?, contact?, consent:true }` | converter submission, see below |
+| `GET /submissions/:id` | | public status `{ id, status, prUrl?, reason?, updatedAt }` |
+| `GET /submissions` | | admin: all submissions with contents and warnings |
+| `POST /submissions/:id/approve` or `/reject` | `{ reason }` (reject) | admin |
+
+Protections: per-IP rate limits (comments 5/10 min, info edits 6/10 min, ratings 30/h), 64 KB body limit, control characters stripped, only catalogue plugin ids accepted. All user text is escaped on render; Markdown goes through an allow-list renderer (no raw HTML, http(s) links only).
+Not built yet: accounts, per-IP bans, a moderation UI (use the admin endpoints), a stronger spam filter. Ratings are per browser id, so they can be gamed by clearing storage.
 
 ## WindowsGSM plugin converter (`convert.html`)
 People migrating from WindowsGSM paste (or upload, max 200 KB) the C# file of a plugin on **`/convert.html`** and get a NodeGSM `plugin.json`, a `README.md` and a pull request description. The converter is `public/convert-cs.js` (pure JavaScript, zero dependencies, UMD: it runs in the browser and in Node, and it **only reads text, it never compiles or executes the C#**). The format it writes is described in the Catalogue's [PLUGINS.md](https://github.com/ohmcodes/Node.NodeGSM.Catalogue/blob/main/PLUGINS.md); what converts and what does not is in the Catalogue's [CONTRIBUTING.md](https://github.com/ohmcodes/Node.NodeGSM.Catalogue/blob/main/CONTRIBUTING.md#migrating-a-windowsgsm-c-plugin).
@@ -66,16 +94,60 @@ The page shows what was detected (editable `id`, name, author, executable), the 
 Nothing is sent anywhere before the user presses **Submit** in option 3.
 
 ### Submissions backend (option 3)
-`POST /api/submissions` is handled by the WebsiteServer API: it converts the C# again (the browser result is not trusted), accepts only `plugin.json` + `README.md`, rate limits per hashed IP, and lets the owners approve or reject (approval can open a draft pull request on the Catalogue when the API has a `GITHUB_TOKEN`). The rules, the moderation workflow and the privacy notes are in its README. `public/admin-submissions.html` is the simple moderation page (it asks for the admin token and renders everything with `textContent`).
+`POST /api/submissions` takes the C# `source` (the server **converts it again**, the browser result is not trusted) or a `pluginJson`, the `id`, optional `edits` `{ name, author, exe }`, optional `contact` and `consent: true`. Rules: source max 200 KB, `plugin.json` max 64 KB, text only (control characters / invalid UTF-8 rejected), `id` must match `^[a-z0-9][a-z0-9_-]{1,31}$` and must exist neither in the catalogue index nor in another non-rejected submission (409), at most **200 pending** submissions (503), and per hashed IP **1 per 10 minutes and 3 per day** (only accepted submissions use the quota; every attempt also counts against a coarse flood guard).
 
-**Converter copy:** the API keeps a copy of `public/convert-cs.js` (`server/lib/convert-cs.js`). After changing the converter here, run `npm run sync:converter` in the WebsiteServer repo (its CI fails when the copy is out of date).
+**Only `plugin.json` + `README.md` are ever accepted.** There is no field for a `plugin.js`, and `plugin.json` is checked against a strict allow-list: install must be `steamcmd` or `manual` (no `steps`, `script`, `download`, `run`), no `env`, no unknown keys, `run.exe` relative without `..`, `run.command` a plain program name, docs links `http(s)` only. Anything richer needs a normal pull request to the Catalogue where it is reviewed by hand.
+
+Status flow: `pending` -> `approved` (manual mode) or `pr-opened` (automatic) or `rejected`. `GET /api/submissions/:id` is public by id (random `sub_<12 hex>`, only the submitter knows it) and returns the status, the PR link and the rejection reason, **never the contents or the contact**.
+
+**Moderation workflow** (admin = `Authorization: Bearer <ADMIN_TOKEN>`):
+1. `GET /api/submissions` (or the simple page `/admin-submissions.html`, which renders everything with `textContent`) lists submissions with the generated `plugin.json`, README, PR body, warnings and TODOs. Read them as untrusted text.
+2. `POST /api/submissions/<id>/reject` with `{ "reason": "..." }`, or `POST /api/submissions/<id>/approve`.
+3. **With `GITHUB_TOKEN`** approval creates the branch `submit/<id>-<random>` from `main`, commits **only** `plugins/<id>/plugin.json` and `plugins/<id>/README.md` and opens a **draft** pull request titled *Add <name> plugin (converted from WindowsGSM)* whose body says it came from the website converter and still needs an `icon.png` and docs / README review. The status becomes `pr-opened`. If GitHub fails halfway the half-made branch is deleted, the submission stays `approved` (with `lastError`) and approving again retries.
+4. **Without a token** approval marks it `approved` and returns the two files and the PR body so you can open the PR yourself.
+
+```
+curl -H "Authorization: Bearer $ADMIN_TOKEN" https://site/api/submissions
+curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" https://site/api/submissions/sub_0123456789ab/approve
+curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" -H "Content-Type: application/json" -d '{"reason":"duplicate"}' https://site/api/submissions/sub_0123456789ab/reject
+```
+Use a **fine-grained token limited to the Catalogue repository** with *Contents* and *Pull requests* read/write and nothing else. The token only travels in the `Authorization` header of requests to `GITHUB_API_URL`, is redacted from error messages and is never returned by any route.
+
+**Hosting note:** option 3 needs this Node server (`server/server.js`) running. When the pages are opened without the API (for example from a plain static server) the option is disabled automatically: the page asks `/api/health`.
+
+**Privacy:** the contact is optional, stored as plain text with the submission and visible only to the owners (never in the status route, never in the pull request). The IP address is stored only hashed (the same 16-character SHA-256 prefix as for comments) for rate limits. The submitted C# is **not stored**, only its SHA-256 and size; the generated `plugin.json` / README / PR body are kept until the data file is cleaned. To delete a submission remove it from `submissions` in `server/data/community.json` while the server is stopped.
+
+**Security notes:** submission content is untrusted (it comes from strangers): it is only ever stored and returned as text and rendered with `textContent`; the converter parses text and never runs it; the PR body never contains the contact; the admin and status routes are separate; the GitHub address must be `https` (except localhost) so the token cannot go out in clear text. Not built: captcha, e-mail notification, a submission edit flow.
+
+## Download counter
+The front page shows **App downloads** (and the Download page the total plus the latest release). The number is the sum of GitHub's per-file download counts over the releases of `APP_REPO` (installer and portable exe; update metadata such as `latest.yml`, `.blockmap` and checksums, drafts and pre-release-only notes are not counted twice), so it also counts people who download straight from GitHub, not only visitors who clicked the site button. `GET /api/stats` reads it: GitHub is asked at most once per 10 minutes, the last good number is kept in `community.json` (a GitHub outage or a restart never shows 0), and the tile stays hidden while nothing is known or before the first release. Only public release data is read, no token is sent.
+
+**The app repository must be public**: GitHub answers 404 for a private repository's releases to anonymous requests (and visitors cannot download from it either).
 
 ## Deploy
-- **The site:** `.github/workflows/site.yml` tests and publishes `public/` to GitHub Pages (enable Pages -> GitHub Actions). Any static host works too.
-- **The data:** run the API from [Node.NodeGSM.WebsiteServer](https://github.com/ohmcodes/Node.NodeGSM.WebsiteServer) (`docker compose up -d --build`, port 3013, data in a persistent volume) and point `API_URL` at it. GitHub Pages cannot store data.
+Everything is one Node process (`server/server.js`): the pages from `public/`, the API under `/api` and the data in one JSON file. GitHub Pages is not used any more because it cannot store data.
+
+**Docker (recommended), port 3013, persistent data:**
+```
+cp .env.example .env        # optional: ADMIN_TOKEN, TRUST_PROXY, GITHUB_TOKEN, APP_REPO
+docker compose up -d --build
+```
+`http://localhost:3013` serves the site, `/api/health` the API. Data lives in the Docker volume `nodegsm-data` (`/data`, the file `community.json`): it survives restarts, rebuilds and updates. Update with `git pull` then `docker compose up -d --build`. CI (`.github/workflows/ci.yml`) builds the image, starts it and checks that the data survives replacing the container.
+
+Back up the data (it is **not** in git: hashed IPs and submission contacts):
+```
+docker run --rm -v nodegsm-data:/data -v "$PWD":/backup alpine tar czf /backup/nodegsm-data-$(date +%F).tgz -C /data .
+```
+Restore: stop the container, extract the archive into the volume the same way, start it again. To bring over a `community.json` from `npm start` (`server/data/`), copy it into the volume the same way.
+
+**HTTPS:** put Caddy, nginx or a Cloudflare tunnel in front of port 3013 and set `TRUST_PROXY=1` (so the per-IP rate limits see the visitor, not the proxy). Do not set it when the container is reachable directly.
+
+**Without Docker:** `npm start` (Node 18+), with `DATA_DIR` pointing to a folder you back up.
+
+**Storage:** one JSON file is enough for one instance and thousands of comments (writes are atomic). Move to SQLite only if the file grows past tens of MB or you want several instances; `server/store.js` is the one module to swap. MySQL is not needed.
 
 ## Files
-`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `feed.html` + `feed.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `test/` (`test-convert.js`, `fixtures/` C# samples), `scripts/` (`serve.js` preview server, `sync-app.js`).
+`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `feed.html` + `feed.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (`server.js`, `store.js`, `submissions.js`, `test.js`, `test-convert.js`, `test-submissions.js`), `test/fixtures/` (C# samples), `scripts/sync-app.js`, `Dockerfile`, `docker-compose.yml`, `.env.example`.
 
 ## License
 MIT. Game names and icons belong to their owners.

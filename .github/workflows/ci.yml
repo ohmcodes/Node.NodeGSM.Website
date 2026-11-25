@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # the converter tests validate their output with the Catalogue's validator (and PLUGINS.md); public repository, read only
+      - uses: actions/checkout@v4
+        with:
+          repository: ohmcodes/Node.NodeGSM.Catalogue
+          path: catalogue
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm test
+        env:
+          NODEGSM_CATALOGUE: ${{ github.workspace }}/catalogue
+
+  # The Docker image builds, starts, serves the site and the API, and keeps its data when the container is replaced.
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nodegsm-website .
+      - name: Start
+        run: |
+          docker run -d --name site -p 3013:3013 -v nodegsm-data:/data nodegsm-website
+          for i in $(seq 1 30); do curl -fs localhost:3013/api/health > /dev/null && break || sleep 1; done
+          curl -fs localhost:3013/api/health | grep -q nodegsm-community
+          curl -fs -o /dev/null localhost:3013/index.html
+          curl -fs localhost:3013/api/stats | grep -q '"app"'
+      - name: Data survives replacing the container
+        run: |
+          curl -fs -X PUT localhost:3013/api/plugins/rust/rating -H 'X-Client-Id: ci-client-1' -H 'Content-Type: application/json' -d '{"value":4}' | grep -q '"mine":4'
+          docker stop site          # flushes community.json
+          docker rm site
+          docker run -d --name site2 -p 3013:3013 -v nodegsm-data:/data nodegsm-website
+          for i in $(seq 1 30); do curl -fs localhost:3013/api/health > /dev/null && break || sleep 1; done
+          curl -fs localhost:3013/api/plugins/rust/community -H 'X-Client-Id: ci-client-1' | grep -q '"mine":4'
+      - name: Logs on failure
+        if: failure()
+        run: docker logs site || true; docker logs site2 || true
