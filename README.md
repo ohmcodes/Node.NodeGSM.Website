@@ -1,6 +1,6 @@
 # NodeGSM Website
 
-The website of [NodeGSM](https://github.com/ohmcodes/Node.NodeGSM): **Home**, **Features & changelog**, **Plugins** and **Download**. Dark mode, no framework, no dependencies (Node 18+ for the backend).
+The website of [NodeGSM](https://ohmcodes.github.io/Node.NodeGSM.Website/): **Home**, **Features & changelog**, **Plugins** and **Download**. Dark mode, no framework, no dependencies (Node 18+ for the backend).
 
 This repository is independent of the app and of the plugin list:
 
