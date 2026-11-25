@@ -50,12 +50,26 @@ function createApp(opts = {}) {
   o.rate = Object.assign({ comment: [5, 10 * 60e3], info: [6, 10 * 60e3], rating: [30, 3600e3], download: [1, 10 * 60e3], submit: [1, 10 * 60e3], submitDay: [3, 24 * 3600e3], submitTry: [30, 10 * 60e3], submitStatus: [60, 10 * 60e3] }, opts.rate);
   const store = new Store(path.join(o.dataDir, 'community.json'));
 
+  // feed events "new plugin" / "plugin updated": the Catalogue has no dates, so the site notices changes between two reads of index.json.
+  // The first read only records a baseline (no events), otherwise every existing plugin would show up as new.
+  const onCatalog = (j) => {
+    const snap = {}; for (const p of j.plugins) snap[p.id] = { n: String(p.name || p.id), v: String(p.version || '') };
+    const old = store.data.catalog;
+    if (old) {
+      for (const [id, c] of Object.entries(snap)) {
+        if (!old[id]) store.event({ t: 'new', id, name: c.n, v: c.v });
+        else if (c.v && old[id].v !== c.v) store.event({ t: 'update', id, name: c.n, from: old[id].v, v: c.v });
+      }
+    }
+    if (!old || JSON.stringify(old) !== JSON.stringify(snap)) { store.data.catalog = snap; store.touch(); }
+  };
+
   // known plugin ids (refreshed at most every 10 minutes)
   let known = null, knownAt = 0;
   const knownIds = () => {
     if (Date.now() - knownAt < 10 * 60e3) return known;
     knownAt = Date.now();
-    const set = (j) => { known = new Set(j.plugins.map((p) => p.id)); };
+    const set = (j) => { known = new Set(j.plugins.map((p) => p.id)); onCatalog(j); };
     if (/^https?:\/\//i.test(o.catalogIndex)) {
       // refresh in the background; until the first answer (or when the catalogue is down) any valid id is accepted
       fetch(o.catalogIndex, { signal: AbortSignal.timeout(8000) }).then((r) => r.json()).then(set).catch(() => {});
@@ -128,6 +142,15 @@ function createApp(opts = {}) {
       const out = {}; for (const [id, p] of Object.entries(store.data.plugins)) { const r = rating(p); if (r.count || p.downloads) out[id] = { avg: r.avg, count: r.count, downloads: p.downloads }; }
       return send(res, 200, out);
     }
+    if (parts[0] === 'feed' && m === 'GET') {
+      knownIds(); // makes sure the catalogue was read, so new / updated plugins are noticed
+      const type = url.searchParams.get('type') || ''; const n = Math.min(100, Math.max(1, Number(url.searchParams.get('limit')) || 50));
+      const events = store.data.events.filter((e) => !type || e.t === type).slice(0, n);
+      const all = Object.entries(store.data.plugins);
+      const topDownloads = all.filter(([, p]) => p.downloads > 0).sort((a, b) => b[1].downloads - a[1].downloads).slice(0, 10).map(([id, p]) => ({ id, downloads: p.downloads }));
+      const sum = (f) => all.reduce((t, [, p]) => t + f(p), 0);
+      return send(res, 200, { events, topDownloads, totals: { downloads: sum((p) => p.downloads), ratings: sum((p) => Object.keys(p.ratings).length), comments: sum((p) => p.comments.length) } });
+    }
     if (parts[0] === 'submissions') return subs.handle(req, res, parts);
     if (parts[0] !== 'plugins' || !parts[1]) throw new HttpError(404, 'Not found');
     const id = pluginId(parts[1]); const what = parts[2]; const ip = ipOf(req);
@@ -136,13 +159,13 @@ function createApp(opts = {}) {
     if (what === 'community' && m === 'GET') return send(res, 200, view(store.peek(id) || store.plugin(id), CLIENT_RE.test(String(req.headers['x-client-id'] || '')) ? String(req.headers['x-client-id']) : ''));
 
     if (what === 'download' && m === 'POST') {
-      try { limit('download', ip, id); store.plugin(id).downloads++; store.touch(); } catch { /* repeat downloads within the window are not counted */ }
+      try { limit('download', ip, id); store.plugin(id).downloads++; store.event({ t: 'download', id }); } catch { /* repeat downloads within the window are not counted */ }
       return send(res, 204, '');
     }
     if (what === 'rating' && m === 'PUT') {
       const client = clientOf(req); limit('rating', ip);
-      const v = Math.round(Number((await readJson(req)).value)); if (!(v >= 1 && v <= 5)) throw new HttpError(400, 'Rating must be 1-5');
-      const p = store.plugin(id); p.ratings[client] = v; store.touch(); return send(res, 200, view(p, client));
+      const v = Math.round(Number((await readJson(req)).value)); if (!(v >= 0 && v <= 5)) throw new HttpError(400, 'Rating must be 1-5 (0 removes your rating)');
+      const p = store.plugin(id); if (v === 0) delete p.ratings[client]; else { p.ratings[client] = v; store.event({ t: 'rating', id, value: v }); } store.touch(); return send(res, 200, view(p, client));
     }
     if (what === 'comments' && m === 'POST') {
       const client = clientOf(req); limit('comment', ip);
@@ -153,6 +176,7 @@ function createApp(opts = {}) {
       if (p.comments.some((c) => c.by === ip && c.text === text)) throw new HttpError(409, 'Duplicate comment');
       p.comments.push({ id: 'c' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex'), name, text, at: Date.now(), by: ip });
       if (p.comments.length > LIMITS.comments) p.comments.splice(0, p.comments.length - LIMITS.comments);
+      store.event({ t: 'comment', id, cid: p.comments[p.comments.length - 1].id, name, text: text.slice(0, 140) });
       store.touch(); return send(res, 201, view(p, client));
     }
     if (what === 'info' && m === 'PUT') {
@@ -163,6 +187,7 @@ function createApp(opts = {}) {
       if (linkCount(text) > 20) throw new HttpError(400, 'Too many links');
       i.history.unshift({ rev: i.rev, text: i.text, by: i.by, at: i.at, summary: i.summary }); i.history.length = Math.min(i.history.length, LIMITS.history);
       Object.assign(i, { text, rev: i.rev + 1, by: name, at: Date.now(), summary });
+      store.event({ t: 'info', id, name, rev: i.rev, summary });
       store.touch(); return send(res, 200, view(p, client));
     }
 
@@ -171,6 +196,7 @@ function createApp(opts = {}) {
       if (!isAdmin(req)) throw new HttpError(403, 'Admin only');
       const p = store.plugin(id); const n = p.comments.length; p.comments = p.comments.filter((c) => c.id !== parts[3]);
       if (p.comments.length === n) throw new HttpError(404, 'Comment not found');
+      store.data.events = store.data.events.filter((e) => e.cid !== parts[3]);
       store.touch(); return send(res, 200, view(p));
     }
     if (what === 'info' && parts[3] === 'revert' && m === 'POST') {
@@ -196,7 +222,7 @@ function createApp(opts = {}) {
     let st; try { st = fs.statSync(file); } catch { throw new HttpError(404, 'Not found'); }
     if (!st.isFile()) throw new HttpError(404, 'Not found');
     const ext = path.extname(file).toLowerCase();
-    const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Content-Length': st.size, 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Cache-Control': ext === '.html' || top === 'data' || file.endsWith('index.json') ? 'no-cache' : 'public, max-age=3600' };
+    const headers = { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Content-Length': st.size, 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Cache-Control': 'no-cache' };
     if (ext === '.zip') headers['Content-Disposition'] = `attachment; filename="${path.basename(file)}"`;
     res.writeHead(200, headers);
     if (req.method === 'HEAD') return res.end();

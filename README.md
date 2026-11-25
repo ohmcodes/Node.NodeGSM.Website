@@ -10,6 +10,12 @@ This repository is independent of the app and of the plugin list:
 | The plugin list (games) | https://github.com/ohmcodes/Node.NodeGSM.Catalogue (the site only **reads** it) |
 | This site, its ratings / comments / community info | here |
 
+## Activity feed
+`/feed.html` lists recent activity (new and updated plugins, ratings, comments, community info edits, downloads) with type filters, plus a **Most downloaded** list. It needs the site server, because activity comes from every visitor (in local-only mode the page says so). Events live in `community.json`; the page refreshes every minute.
+
+## Issue templates
+`.github/ISSUE_TEMPLATE/report-issues.md` is a guided template for website problems (page, steps, expected vs actual, browser); `config.yml` points app problems to the app repository and game requests to the Catalogue. The footer's "Report an issue" link opens the app repository's `report-issues.md` template.
+
 ## Contributing page
 `public/contributing.html` renders `public/data/contributing.md`, a copy of the Catalogue repository's `CONTRIBUTING.md` (links in it are rewritten to the Catalogue repo). `npm run sync:app` refreshes the copy from `../Node.NodeGSM.Catalogue`.
 
@@ -54,8 +60,10 @@ Site config `API_URL`: `'auto'` (default; use `./api` if the server answers, els
 |---|---|---|
 | `GET /health` | | `{ ok, service:'nodegsm-community', admin, submissions }` |
 | `GET /ratings` | | `{ "<id>": { avg, count, downloads } }` for the plugin list |
+| `GET /feed?type=&limit=` | | activity feed: `{ events:[{t,at,id,...}], topDownloads:[{id,downloads}], totals }`, newest first (`t` = `new`, `update`, `rating`, `comment`, `info`, `download`; `type` filters, `limit` max 100). Holds the last 300 events and never contains client ids or IP hashes. New / updated plugins are detected by comparing two reads of the Catalogue `index.json` (the first read is only a baseline) |
+| `GET /feed?type=&limit=` | | activity feed: `{ events:[{t,at,id,...}], topDownloads:[{id,downloads}], totals }`, newest first (`t` = `new`, `update`, `rating`, `comment`, `info`, `download`; `type` filters, `limit` max 100). Keeps the last 300 events; never contains client ids or IP hashes. New / updated plugins are detected by comparing two reads of the Catalogue `index.json` (the first read is only a baseline, so it creates no events) |
 | `GET /plugins/:id/community` | | `{ rating:{avg,count,mine}, downloads, comments:[{id,name,text,at}], info:{text,rev,by,at,summary,history} }` |
-| `PUT /plugins/:id/rating` | `{ value: 1-5 }` | one rating per `X-Client-Id` (random id the browser generates) |
+| `PUT /plugins/:id/rating` | `{ value: 0-5 }` | one rating per `X-Client-Id` (random id the browser generates); `0` removes it (in the drawer: click your star again or "remove it") |
 | `POST /plugins/:id/comments` | `{ text, name }` | max 2000 chars, max 2 links, duplicates rejected |
 | `PUT /plugins/:id/info` | `{ text, name, summary }` | Markdown, max 20000 chars; every save is a revision (last 50 kept) |
 | `POST /plugins/:id/download` | | download counter, once per IP per plugin per 10 min |
@@ -113,7 +121,7 @@ Use a **fine-grained token limited to the Catalogue repository** with *Contents*
 - **Static only:** `.github/workflows/site.yml` publishes `public/` to GitHub Pages (enable Pages → GitHub Actions). Pages cannot run the backend, so host the API elsewhere and set `API_URL` in `public/config.js` and `ALLOWED_ORIGINS` on it.
 
 ## Files
-`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (`server.js`, `store.js`, `submissions.js`, `test.js`, `test-convert.js`, `test-submissions.js`), `test/fixtures/` (C# samples), `scripts/sync-app.js`.
+`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `feed.html` + `feed.js`, `feed.html` + `feed.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (`server.js`, `store.js`, `submissions.js`, `test.js`, `test-convert.js`, `test-submissions.js`), `test/fixtures/` (C# samples), `scripts/sync-app.js`.
 
 ## License
 MIT. Game names and icons belong to their owners.

@@ -36,9 +36,9 @@
     })(),
     async get(id) { await this.ready; if (this.mode === 'api') return api(`/plugins/${enc(id)}/community`); return view(slot(load(), id)); },
     async rate(id, n) {
-      await this.ready; n = Math.max(1, Math.min(5, n | 0));
+      await this.ready; n = Math.max(0, Math.min(5, n | 0)); // 0 removes the viewer's rating
       if (this.mode === 'api') return api(`/plugins/${enc(id)}/rating`, { method: 'PUT', body: JSON.stringify({ value: n }) });
-      const d = load(); slot(d, id).ratings[me()] = n; save(d); return view(d[id]);
+      const d = load(); if (n === 0) delete slot(d, id).ratings[me()]; else slot(d, id).ratings[me()] = n; save(d); return view(d[id]);
     },
     async comment(id, text, name) {
       await this.ready;
@@ -58,6 +58,12 @@
     },
     // fire-and-forget download counter (works with the page navigating away)
     download(id) { if (this.mode !== 'api') return; try { const u = `${base}/plugins/${enc(id)}/download`; if (!(navigator.sendBeacon && navigator.sendBeacon(u))) fetch(u, { method: 'POST', keepalive: true }); } catch { /* ignore */ } },
+    // activity feed + download leaderboard; needs the site server (local mode has no shared activity)
+    async feed(type) {
+      await this.ready;
+      if (this.mode !== 'api') return { local: true, events: [], topDownloads: [], totals: { downloads: 0, ratings: 0, comments: 0 } };
+      return api('/feed?limit=60' + (type ? '&type=' + enc(type) : ''));
+    },
     // { id: {avg,count,downloads} } for the plugin list
     async summaries() {
       await this.ready;

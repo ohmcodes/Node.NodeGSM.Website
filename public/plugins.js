@@ -103,7 +103,7 @@
       const docGroup = (type, title) => { const l = docs.filter((d) => (d.type || 'unofficial') === type); return l.length ? `<h3>${title}</h3><ul>${l.map((d) => `<li><a href="${$esc(d.url)}" target="_blank" rel="noopener noreferrer">${$esc(d.title)}</a>${d.description ? ` <span class="mute">- ${$esc(d.description)}</span>` : ''}</li>`).join('')}</ul>` : ''; };
       h += `<div class="md">${$md(p.readme)}</div>` + docGroup('official', 'Official documentation') + docGroup('unofficial', 'Guides and community links') +((p.configs || []).length ? `<h3>Config files</h3><ul>${p.configs.map((x) => `<li><code>${$esc(x.path)}</code> <span class="mute">(${$esc(x.format)})</span></li>`).join('')}</ul>` : '') + ((p.logs || []).length ? `<h3>Logs</h3><ul>${p.logs.map((x) => `<li>${$esc(x.name)}: <code>${$esc(x.path)}</code></li>`).join('')}</ul>` : '') + `<div>${p.tags.map((t) => `<span class="tag">${$esc(t)}</span>`).join('')}</div>${p.url ? `<p><a href="${$esc(p.url)}" target="_blank" rel="noopener noreferrer">Game / server info ↗</a></p>` : ''}${(p.screenshots || []).length ? `<h3>Screenshots</h3><div class="shots">${p.screenshots.map((s) => `<img loading="lazy" src="${$esc(s)}" alt="">`).join('')}</div>` : ''}`; }
     } else if (tab === 'comments') {
-      h += `<h3>Your rating</h3><div class="rate" id="rate">${[1, 2, 3, 4, 5].map((n) => `<button data-n="${n}" class="${n <= rt.mine ? 'on' : ''}" aria-label="${n} stars">★</button>`).join('')}</div>
+      h += `<h3>Your rating</h3><div class="rate" id="rate">${[1, 2, 3, 4, 5].map((n) => `<button data-n="${n}" class="${n <= rt.mine ? 'on' : ''}" aria-label="${n} stars">★</button>`).join('')}</div>${rt.mine ? '<p class="mute" style="margin:4px 0 0"><small>Click your rating again, or <a href="#" id="unrate">remove it</a>.</small></p>' : ''}
         <h3 style="margin-top:22px">Comments</h3>
         <div class="search" style="margin-bottom:10px"><input class="in" id="cName" placeholder="Your name (optional)" maxlength="${Community.max.name}" style="flex:1 1 140px"></div>
         <textarea class="in" id="cText" placeholder="Share a tip, a bug, or whether this plugin works for you..." maxlength="${Community.max.comment}"></textarea>
@@ -123,7 +123,9 @@
     on('saveInfo', async () => { const n = body.querySelector('#infoName').value; try { localStorage.setItem('nodegsm.name', n); } catch { /* */ } try { state.com = await Community.saveInfo(p.id, body.querySelector('#infoText').value, n, body.querySelector('#infoSum').value); drawer(); } catch (e) { alert(e.message); } });
     on('post', async () => { const m = body.querySelector('#msg'); try { state.com = await Community.comment(p.id, body.querySelector('#cText').value, body.querySelector('#cName').value); ratings = await Community.summaries(); drawer(); } catch (e) { m.textContent = e.message; } });
     const rate = body.querySelector('#rate');
-    if (rate) rate.onclick = async (e) => { const b = e.target.closest('button'); if (!b) return; try { state.com = await Community.rate(p.id, +b.dataset.n); ratings = await Community.summaries(); drawer(); render(); } catch (er) { alert(er.message); } };
+    if (rate) rate.onclick = async (e) => { const b = e.target.closest('button'); if (!b) return; try { const n = +b.dataset.n; state.com = await Community.rate(p.id, n === (state.com && state.com.rating ? state.com.rating.mine : 0) ? 0 : n); ratings = await Community.summaries(); drawer(); render(); } catch (er) { alert(er.message); } };
+    const unrate = body.querySelector('#unrate');
+    if (unrate) unrate.onclick = async (e) => { e.preventDefault(); try { state.com = await Community.rate(p.id, 0); ratings = await Community.summaries(); drawer(); render(); } catch (er) { alert(er.message); } };
   }
   dr.querySelector('.pn').insertAdjacentHTML('beforeend', '<div class="in-body"></div>');
 

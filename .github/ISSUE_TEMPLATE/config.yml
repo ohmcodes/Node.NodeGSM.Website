@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report an app issue
+    url: https://github.com/ohmcodes/Node.NodeGSM/issues/new?template=report-issues.md
+    about: Problems with the NodeGSM app itself
+  - name: Request a game
+    url: https://github.com/ohmcodes/Node.NodeGSM.Catalogue/issues/new?template=game-request.md
+    about: Ask for a game server to be supported

@@ -7,9 +7,9 @@ const path = require('path');
 class Store {
   constructor(file) {
     this.file = file;
-    this.data = { plugins: {}, submissions: {} };
+    this.data = { plugins: {}, submissions: {}, events: [], catalog: null };
     this.timer = null;
-    try { this.data = JSON.parse(fs.readFileSync(file, 'utf8')); if (!this.data.plugins) this.data.plugins = {}; if (!this.data.submissions) this.data.submissions = {}; } catch { /* first run */ }
+    try { this.data = JSON.parse(fs.readFileSync(file, 'utf8')); if (!this.data.plugins) this.data.plugins = {}; if (!this.data.submissions) this.data.submissions = {}; if (!Array.isArray(this.data.events)) this.data.events = []; } catch { /* first run */ }
   }
   plugin(id) {
     return (this.data.plugins[id] = this.data.plugins[id] || { ratings: {}, comments: [], info: { text: '', rev: 0, by: '', at: 0, summary: '', history: [] }, downloads: 0 });
@@ -18,6 +18,8 @@ class Store {
   // converter submissions (website -> pull request to the Catalogue), see server/server.js
   submission(sid) { return this.data.submissions[sid]; }
   submissions() { return Object.values(this.data.submissions); }
+  // activity feed: newest first, capped. e = { t: 'rating'|'comment'|'info'|'download'|'new'|'update', id, ... } (never stores client ids or IPs)
+  event(e) { this.data.events.unshift(Object.assign({ at: Date.now() }, e)); if (this.data.events.length > 300) this.data.events.length = 300; this.touch(); }
   // schedule a write (coalesces bursts)
   touch() { if (!this.timer) this.timer = setTimeout(() => { this.timer = null; this.flush(); }, 400); }
   flush() {
