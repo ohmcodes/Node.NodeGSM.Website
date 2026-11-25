@@ -156,5 +156,6 @@ vite.config.ts.timestamp-*
 .nx/workspace-data
 .nx/migrate-runs
 
-# community data (ratings, comments) written by the backend
+
+# leftover local data from the old built-in server (now in Node.NodeGSM.WebsiteServer): never commit
 server/data/

@@ -37,7 +37,7 @@
     let f;
     try { f = await Community.feed(type); } catch (e) { $('#feed').innerHTML = `<li class="mute">Could not load the feed (${$esc(e.message)}).</li>`; return; }
     if (f.local) {
-      $('#feed').innerHTML = '<li class="mute">The activity feed needs the NodeGSM site server (it collects activity from every visitor). Run <code>npm start</code> or set <code>API_URL</code> in config.js.</li>';
+      $('#feed').innerHTML = '<li class="mute">The activity feed needs the NodeGSM website API (it collects activity from every visitor). Set <code>API_URL</code> in config.js to your WebsiteServer.</li>';
       $('#top').innerHTML = ''; return;
     }
     $('#totals').innerHTML = `<b>${f.totals.downloads}</b> downloads · <b>${f.totals.ratings}</b> ratings · <b>${f.totals.comments}</b> comments`;

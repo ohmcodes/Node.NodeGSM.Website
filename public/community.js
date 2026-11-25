@@ -1,6 +1,6 @@
 // Community data layer: ratings, comments, editable community info and download counts of each plugin.
 // Two backends behind one interface:
-//   - api:   the NodeGSM website backend (website/server/server.js): shared by every visitor.
+//   - api:   the NodeGSM website backend (the Node.NodeGSM.WebsiteServer API): shared by every visitor.
 //   - local: stored in this browser's localStorage - fallback when no backend answers; NOT shared.
 // Config: API_URL in config.js ('auto' | url | '').
 (function () {

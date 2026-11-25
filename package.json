@@ -2,11 +2,11 @@
   "name": "nodegsm-website",
   "version": "1.0.0",
   "private": true,
-  "description": "The NodeGSM website: plugin browser (from the Catalogue), ratings, comments and community info. No dependencies.",
+  "description": "The NodeGSM website: plugin browser (from the Catalogue), converter, activity feed. Static pages; the community data comes from Node.NodeGSM.WebsiteServer. No dependencies.",
   "license": "MIT",
   "scripts": {
-    "start": "node server/server.js",
-    "test": "node server/test.js",
+    "start": "node scripts/serve.js",
+    "test": "node test/test-convert.js",
     "sync:app": "node scripts/sync-app.js"
   },
   "engines": {
