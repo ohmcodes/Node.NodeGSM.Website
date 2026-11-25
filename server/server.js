@@ -124,6 +124,8 @@ function createApp(opts = {}) {
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Client-Id, Authorization');
     res.setHeader('Access-Control-Max-Age', '600');
+    // Chrome asks this before a public https page (GitHub Pages) may call an API on localhost / a LAN address
+    if (req.headers['access-control-request-private-network'] === 'true') res.setHeader('Access-Control-Allow-Private-Network', 'true');
   };
   const send = (res, status, body, headers) => {
     const b = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body);

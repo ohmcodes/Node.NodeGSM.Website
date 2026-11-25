@@ -119,7 +119,8 @@ Use a **fine-grained token limited to the Catalogue repository** with *Contents*
 **Security notes:** submission content is untrusted (it comes from strangers): it is only ever stored and returned as text and rendered with `textContent`; the converter parses text and never runs it; the PR body never contains the contact; the admin and status routes are separate; the GitHub address must be `https` (except localhost) so the token cannot go out in clear text. Not built: captcha, e-mail notification, a submission edit flow.
 
 ## Deploy
-- **Full site (recommended):** run `server/server.js` behind a reverse proxy with HTTPS. One process serves pages and API.
+- **Docker on your own machine (recommended):** [Node.NodeGSM.WebsiteServer](https://github.com/ohmcodes/Node.NodeGSM.WebsiteServer) has the `Dockerfile` and `docker-compose.yml` (port 3013, `community.json` in a persistent volume, backup and update instructions). It builds this repository, so nothing is duplicated.
+- **Full site, without Docker:** run `server/server.js` behind a reverse proxy with HTTPS. One process serves pages and API.
 - **Static only:** `.github/workflows/site.yml` publishes `public/` to GitHub Pages (enable Pages → GitHub Actions). Pages cannot run the backend, so host the API elsewhere and set `API_URL` in `public/config.js` and `ALLOWED_ORIGINS` on it.
 
 ## Files
