@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download NodeGSM</title>
+<meta name="description" content="Download NodeGSM for Windows: installer or portable build, requirements and first-run guide.">
+<meta name="theme-color" content="#05060d">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="download">
+<main>
+<div class="ph wrap"><span class="pill"><i></i><span id="ver">Latest release</span></span>
+  <h1>Download <span class="grad">NodeGSM</span></h1>
+  <p>The easiest way to deploy game servers on Windows. Free, open source, no account needed.</p>
+  <div class="cta" style="margin-top:28px"><a class="btn primary" id="dl" href="#" target="_blank" rel="noopener">⬇ Download for Windows</a><a class="btn" id="all" href="#" target="_blank" rel="noopener">All releases</a></div>
+  <p class="mute" style="font-size:.85rem;margin-top:14px">Installer (NSIS) and portable .exe · Windows 10/11 64-bit · builds are currently unsigned, so SmartScreen may warn you</p>
+</div>
+
+<section><div class="wrap">
+  <div class="sec-h reveal"><h2>Get running in <span class="grad">four steps</span></h2></div>
+  <div class="steps">
+    <div class="card reveal"><h3>Install</h3><p>Run the installer, or unzip the portable build anywhere. Your data lives in <code>%APPDATA%\NodeGSM</code>.</p></div>
+    <div class="card reveal"><h3>Pick a game</h3><p>Open <b>Games</b> → <b>Add server</b>, search the built-in plugins, read the defaults.</p></div>
+    <div class="card reveal"><h3>Install</h3><p>One click downloads SteamCMD and the server with a live progress bar.</p></div>
+    <div class="card reveal"><h3>Start &amp; automate</h3><p>Start it, watch the console, then switch on auto restart, updates and backups.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-h reveal"><h2>Requirements</h2></div>
+  <div class="grid g2">
+    <div class="card reveal"><h3>System</h3><table class="tbl"><tr><td>OS</td><td>Windows 10 / 11 (64-bit)</td></tr><tr><td>Disk</td><td>Depends on the game (Rust ~ 10 GB, ARK ~ 20 GB+)</td></tr><tr><td>Network</td><td>Port forwarding / firewall rules for your game ports</td></tr><tr><td>Admin</td><td>Only for the firewall helper</td></tr></table></div>
+    <div class="card reveal"><h3>Build from source</h3><pre><code>git clone <span id="repoUrl"></span>
+cd Node.WGSM2026
+npm install
+npm start      # run
+npm run dist   # installer + portable exe</code></pre></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-h reveal"><h2>What's <span class="grad">new</span></h2><p>The latest entries from the changelog. <a href="features.html#changelog">Full changelog</a></p></div>
+  <div class="log" id="log"></div>
+</div></section>
+
+<section><div class="wrap"><div class="cta-band reveal">
+  <h2>Existing WindowsGSM user?</h2>
+  <p class="mute" style="max-width:600px;margin:0 auto 22px">NodeGSM can import an existing server folder without copying it, and keeps using the legacy data folder if you already have one.</p>
+  <a class="btn" href="plugins.html">Check your game is supported →</a>
+</div></div></section>
+</main>
+<script src="config.js"></script>
+<script src="layout.js"></script>
+<script>
+(async () => {
+  const C = window.NODEGSM_SITE;
+  document.getElementById('dl').href = C.REPO + '/releases/latest';
+  document.getElementById('all').href = C.REPO + '/releases';
+  document.getElementById('repoUrl').textContent = C.REPO + '.git';
+  try {
+    const s = await $json('data/site.json');
+    document.getElementById('ver').textContent = 'Version ' + s.version;
+    document.getElementById('log').innerHTML = s.changelog.slice(0, 2).map((e) => `<div class="e reveal"><h3>${$inline(e.title)}</h3><ul>${e.items.slice(0, 5).map((i) => `<li>${$inline(i)}</li>`).join('')}</ul></div>`).join('');
+    $reveal();
+  } catch (e) { /* site data not built yet */ }
+})();
+</script>
+</body>
+</html>

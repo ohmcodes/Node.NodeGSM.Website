@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NodeGSM - Game server manager</title>
+<meta name="description" content="NodeGSM: install, run and automate game servers with one click. Open source, plugin-based, 46 games and growing.">
+<meta name="theme-color" content="#05060d">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home">
+<main>
+<section class="hero"><div class="wrap">
+  <span class="pill"><i></i><span id="ver">Open source · MIT</span></span>
+  <h1>Run any game server.<br><span class="grad">One click.</span></h1>
+  <p class="lead">NodeGSM installs, runs, updates and automates dedicated game servers on Windows. Every game is a community plugin, so support grows as fast as the community does.</p>
+  <div class="cta"><a class="btn primary" href="download.html">⬇ Download NodeGSM</a><a class="btn" href="plugins.html">Browse <span id="pc">46</span> plugins →</a></div>
+  <div class="stats">
+    <div class="stat"><b class="grad" id="s1">46</b><span>Game plugins</span></div>
+    <div class="stat"><b class="grad" id="s2">-</b><span>Features shipped</span></div>
+    <div class="stat"><b class="grad">1-click</b><span>SteamCMD installs</span></div>
+    <div class="stat"><b class="grad">MIT</b><span>Free forever</span></div>
+  </div>
+  <div class="mock reveal" aria-hidden="true">
+    <div class="bar"><i></i><i></i><i></i></div>
+    <div class="body">
+      <aside><div class="on">Servers <span>3</span></div><div>Games</div><div>Backups</div><div>Schedules</div><div>Settings</div></aside>
+      <main>
+        <span class="ln"><span class="dot"></span> <b style="color:#fff">Rust</b> · <span class="ok">Started</span> · 18/50 players · CPU 12%</span>
+        <span class="ln"><span class="dot"></span> <b style="color:#fff">Palworld</b> · <span class="ok">Started</span> · 6/32 players</span>
+        <span class="ln"><span class="dot" style="background:var(--warn);box-shadow:0 0 8px var(--warn)"></span> <b style="color:#fff">Minecraft</b> · <span class="wa">Updating 62%</span></span>
+        <span class="ln">&nbsp;</span>
+        <span class="ln cy">&gt; steamcmd +app_update 258550 validate</span>
+        <span class="ln">Update state (0x61) downloading, progress: 62.31 (4.1 / 6.6 GB)</span>
+        <span class="ln ok">[ok] Rust installed in 4m 12s</span>
+        <span class="ln">[Server] Server startup complete.</span>
+        <span class="ln">[Query] a2s ok · players 18</span>
+      </main>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-h reveal"><h2>Everything you need to <span class="grad">run servers</span></h2><p>Built for people who host games for friends, communities, or fun.</p></div>
+  <div class="grid g3">
+    <div class="card reveal"><div class="ico">⚡</div><h3>One-click install</h3><p>SteamCMD downloads with live progress, strict success checks and first-run self-update.</p></div>
+    <div class="card reveal"><div class="ico">🧩</div><h3>Everything is a plugin</h3><p>Games are plain folders with a <code>plugin.json</code>. Add or fix one with a pull request, no compiling.</p></div>
+    <div class="card reveal"><div class="ico">🖥️</div><h3>Live console &amp; logs</h3><p>Command input, multiple live-tailed log files per game, filters and error highlighting.</p></div>
+    <div class="card reveal"><div class="ico">🛠️</div><h3>Config editor</h3><p>Edit INI, JSON, XML and more inside the app, with validation and automatic backups of the previous version.</p></div>
+    <div class="card reveal"><div class="ico">🔁</div><h3>Automation</h3><p>Auto restart, auto start, auto update, cron restarts, backups and CPU priority or affinity.</p></div>
+    <div class="card reveal"><div class="ico">🔔</div><h3>Alerts &amp; monitoring</h3><p>Discord webhook alerts, player counts via A2S / UT3 / FiveM queries, system metrics in the header.</p></div>
+  </div>
+  <p class="center" style="margin-top:28px"><a href="features.html">See every feature and the changelog →</a></p>
+</div></section>
+
+<section><div class="wrap">
+  <div class="sec-h reveal"><h2>Games <span class="grad">supported</span></h2><p>Search, rate and improve them on the plugins page.</p></div>
+  <div class="marq reveal" id="icons"></div>
+  <p class="center" style="margin-top:28px"><a class="btn" href="plugins.html">Explore all plugins →</a></p>
+</div></section>
+
+<section><div class="wrap"><div class="cta-band reveal">
+  <h2>Missing your game? <span class="grad">Add it.</span></h2>
+  <p class="mute" style="max-width:560px;margin:0 auto 24px">A plugin is a folder with one JSON file. Copy the template, fill in the exe and ports, open a pull request. The community keeps every game up to date.</p>
+  <div class="cta"><a class="btn primary" id="prLink" href="#" target="_blank" rel="noopener">Plugin guide</a><a class="btn" href="plugins.html">Community plugins</a></div>
+</div></div></section>
+</main>
+<script src="config.js"></script>
+<script src="layout.js"></script>
+<script>
+(async () => {
+  const C = window.NODEGSM_SITE;
+  document.getElementById('prLink').href = C.CATALOGUE_REPO + '/blob/main/CONTRIBUTING.md';
+  try {
+    const CAT = new URL(C.CATALOG_URL.replace(/\/?$/, '/'), location.href);
+    const [s, p] = await Promise.all([$json('data/site.json'), $json(new URL('index.json', CAT).href)]);
+    p.plugins.forEach((x) => (x.icon = new URL(x.icon, CAT).href));
+    document.getElementById('ver').textContent = 'v' + s.version + ' · Open source · MIT';
+    ['s1', 'pc'].forEach((i) => (document.getElementById(i).textContent = p.count));
+    document.getElementById('s2').textContent = s.featureCounts.done + s.featureCounts.untested;
+    document.getElementById('icons').innerHTML = p.plugins.map((x) => `<a href="plugins.html#${$esc(x.id)}" title="${$esc(x.name)}"><img loading="lazy" src="${$esc(x.icon)}" alt="${$esc(x.name)}"></a>`).join('');
+  } catch (e) { /* site data not built yet */ }
+})();
+</script>
+</body>
+</html>

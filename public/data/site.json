@@ -1,0 +1,832 @@
+{
+ "version": "0.1.0",
+ "name": "NodeGSM",
+ "pluginCount": 46,
+ "featureCounts": {
+  "done": 71,
+  "untested": 38,
+  "planned": 9
+ },
+ "groups": [
+  {
+   "group": "Plugins (every game is a plugin)",
+   "rows": [
+    {
+     "feature": "All 46 games are plugins in `plugins/<id>/`",
+     "status": "✅",
+     "notes": "Edit/fix a game with a pull request - [CONTRIBUTING.md](CONTRIBUTING.md)"
+    },
+    {
+     "feature": "Declarative `plugin.json` + JSON Schema (`plugins/plugin.schema.json`)",
+     "status": "✅",
+     "notes": "Editor auto-complete; format reference in [PLUGINS.md](PLUGINS.md)"
+    },
+    {
+     "feature": "Listing metadata: title, description, author, version, tags, url, icon, banner, README, screenshots",
+     "status": "✅",
+     "notes": "Shown in the in-app **Games** browser and the website"
+    },
+    {
+     "feature": "Plugin `metrics`: game-specific live numbers (FPS, tick rate, entities ...) read with a regex from the console, a log or an RCON command, optionally polled on a timer",
+     "status": "✅",
+     "notes": "Become selectable columns on Table / Dashboard. `mc` (TPS / ms per tick), `csgo` and `rust` (FPS) ship a tick metric; other games add only verified patterns"
+    },
+    {
+     "feature": "Plugin metric `kind: \"tick\"` + `tickTarget`, `higherIsBetter`, `warnBelow` / `badBelow` / `warnAbove` / `badAbove`, `patternFlags`, `source: \"rcon:<command>\"` (+ `rconConsole`, `rconSource`)",
+     "status": "✅",
+     "notes": "Validated, in the schema / template, exported to `registry.json` (`kind`); see [PLUGINS.md](PLUGINS.md)"
+    },
+    {
+     "feature": "Documentation links (`docs`): official and unofficial guides per game",
+     "status": "✅",
+     "notes": "Grouped Official / Unofficial in the **Games** browser; exported in `registry.json`; at least one required for repository plugins. All 46 built-ins have links (Valve/SteamDB patterns + well-known guides)"
+    },
+    {
+     "feature": "Install steps: `steamcmd`, `download`, `extract`, `run` (other installers), `write`, `mkdir`, `script`",
+     "status": "✅",
+     "notes": "Confined to the server folder; zip built in, 7z/tar.gz via Windows `tar`"
+    },
+    {
+     "feature": "Config files: any number per game (INI, JSON, XML, properties, cfg, YAML, text)",
+     "status": "✅",
+     "notes": "**Config Files** tab and **Home > Configs** screen: pick a file, edit it **Structured** (key / value rows, search, add / remove key) or **Raw**, JSON validation + format, `.bak` of the previous version, create from template"
+    },
+    {
+     "feature": "Log files: any number per game, live view",
+     "status": "✅",
+     "notes": "**Logs** tab: list of logs, live tail, wildcard (newest file), rotation handled, filter, pause, error/warn highlight"
+    },
+    {
+     "feature": "Argument templates (`{port}`, groups, optional `[...]`, `{param}`, `{paramRaw}`, `{port+10}`)",
+     "status": "✅",
+     "notes": "Missing values drop their argument automatically"
+    },
+    {
+     "feature": "Optional `plugin.js` hooks: `install`, `latest`, `local`, `args`",
+     "status": "✅",
+     "notes": "Full Node access - reviewed in PRs; used by Minecraft, Bedrock, Vintage Story, FiveM"
+    },
+    {
+     "feature": "Install plugin from ZIP / folder, Reload, open plugins folder",
+     "status": "✅",
+     "notes": "In **Games** dialog"
+    },
+    {
+     "feature": "Local plugin overrides a built-in one with the same id",
+     "status": "✅",
+     "notes": "Fix an obsolete game without waiting for a PR"
+    },
+    {
+     "feature": "Validation with visible errors; `npm run validate:plugins`",
+     "status": "✅",
+     "notes": "Same checks run in CI on pull requests"
+    },
+    {
+     "feature": "`plugins/registry.json` for the website (`npm run registry`)",
+     "status": "✅",
+     "notes": "id, metadata, ports, configs, logs and relative media paths"
+    },
+    {
+     "feature": "Game browser in the app (search, README, screenshots, defaults, configs/logs)",
+     "status": "✅",
+     "notes": "**Games** button → **Add server**"
+    },
+    {
+     "feature": "PR guide, PR template, game-request issue template, CI",
+     "status": "✅",
+     "notes": "`CONTRIBUTING.md`, `.github/`"
+    },
+    {
+     "feature": "Optional plugin fields: `cluster`, `configs[].protect`, `backup`, `events`, `logging`, `consoles`, `update.validateArgs`, `files.autoClear`",
+     "status": "✅",
+     "notes": "Validated (relative paths only, regexes must compile, `rcon:` sources must have the `rcon:<port>:<password>` shape), in the schema, template, `toGame()` and `registry.json`; all of them are used by the app"
+    },
+    {
+     "feature": "Converter for WindowsGSM C# plugins",
+     "status": "⏳",
+     "notes": "Manual mapping table in PLUGINS.md for now"
+    },
+    {
+     "feature": "Online plugin repository / one-click install from the website",
+     "status": "⏳",
+     "notes": ""
+    },
+    {
+     "feature": "Scanning of `logging.logFiles` (game log files) by the NGSM log",
+     "status": "⏳",
+     "notes": "Declared and validated, but only console lines are matched"
+    }
+   ]
+  },
+  {
+   "group": "Website (`website/`)",
+   "rows": [
+    {
+     "feature": "Dark futuristic site: Home, Features & changelog, Plugins, Download",
+     "status": "✅",
+     "notes": "No framework; `npm run site:serve` to run it"
+    },
+    {
+     "feature": "Plugin **catalog** (`index.json` + `zips/` + `icons/`, sha256, `hasScript`, docs links) built by `npm run catalog` / `npm run site`",
+     "status": "✅",
+     "notes": "Site reads `CATALOG_URL`, so it can use a catalog published from a separate plugins repo; nothing is hard-coded"
+    },
+    {
+     "feature": "Feature tables + changelog generated from `FEATURES.md`",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Logo in the header and as favicon (`assets/favicon.png`, mark `assets/logo.png`)",
+     "status": "🧪",
+     "notes": "Generated by `npm run icons`; not looked at in a browser on the live site"
+    },
+    {
+     "feature": "Plugins page: forgiving search (\"7daytodie\", \"7 days to die\", \"7dtd\", typos), tag filter, sort (name / rating / downloads / players), detail drawer, official + unofficial doc links, zip download, `plugin.js` warning",
+     "status": "✅",
+     "notes": "Deep links like `plugins.html#rust`"
+    },
+    {
+     "feature": "**Own backend** (`website/server/`, no dependencies): ratings, comments, editable community info with revisions, download counts, admin moderation",
+     "status": "✅",
+     "notes": "Rate limits, size limits, link-spam limit, hashed IPs; tests: `npm run test:site`. No accounts/CAPTCHA/moderation UI yet"
+    },
+    {
+     "feature": "Same UI without the backend",
+     "status": "✅",
+     "notes": "Falls back to per-browser storage (shown with a notice)"
+    },
+    {
+     "feature": "GitHub Pages deploy workflow (static part only)",
+     "status": "🧪",
+     "notes": "`.github/workflows/site.yml`; Pages cannot run the backend, so set `API_URL` to a hosted API"
+    },
+    {
+     "feature": "Online plugin catalog in the app (enable online, install, update from the catalog)",
+     "status": "⏳",
+     "notes": "Designed: same `index.json`, sha256-verified, warn on `plugin.js`"
+    },
+    {
+     "feature": "Separate plugins repository with PR validation + catalog publish",
+     "status": "⏳",
+     "notes": "`scripts/build-catalog.js` is ready to move"
+    },
+    {
+     "feature": "Releases / download buttons",
+     "status": "⏳",
+     "notes": "Link to GitHub Releases; no release has been published yet"
+    }
+   ]
+  },
+  {
+   "group": "Server management",
+   "rows": [
+    {
+     "feature": "46 built-in games (ported from WindowsGSM + Palworld)",
+     "status": "✅",
+     "notes": "Source, GoldSource, Unreal, Unity, Minecraft, FiveM, ..."
+    },
+    {
+     "feature": "GoldSource games install through HLDS (app 90 + mod, 5 passes, `steam_appid.txt`)",
+     "status": "✅",
+     "notes": "Matches WindowsGSM (earlier builds used the wrong app ids)"
+    },
+    {
+     "feature": "One-click install, progress (percent + GB), strict success check",
+     "status": "✅",
+     "notes": "Fails if a step fails or the server exe is missing afterwards"
+    },
+    {
+     "feature": "SteamCMD auto-download + first-run self-update",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Custom installers: Minecraft Java, Minecraft Bedrock, Vintage Story, FiveM",
+     "status": "🧪",
+     "notes": "Implemented as plugin.js; Bedrock/FiveM/VS not run against the real download servers yet"
+    },
+    {
+     "feature": "Import existing server folder",
+     "status": "✅",
+     "notes": "Points at the folder, no copy; delete never removes imported files"
+    },
+    {
+     "feature": "Multiple servers, per-server config",
+     "status": "✅",
+     "notes": "`servers/<id>/configs/wgsm.json`"
+    },
+    {
+     "feature": "Automatic free-port suggestion",
+     "status": "✅",
+     "notes": "Respects `portIncrement`"
+    },
+    {
+     "feature": "Start / Stop / Restart",
+     "status": "✅",
+     "notes": "Stop = console command, then `taskkill`, then force kill after 15 s"
+    },
+    {
+     "feature": "Live console + command input",
+     "status": "✅",
+     "notes": "Not for Source/GoldSource (`stdin: false`)"
+    },
+    {
+     "feature": "Auto restart on crash, auto start with app",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Update check, manual update, auto update (every 30 min), update on start",
+     "status": "✅",
+     "notes": "Steam build id, or plugin `latest`/`local`"
+    },
+    {
+     "feature": "Backup on start, backup / restore (zip)",
+     "status": "🧪",
+     "notes": "Now streamed (memory use does not depend on server size) and with a manifest; see the backup rows below"
+    },
+    {
+     "feature": "Restart crontab",
+     "status": "✅",
+     "notes": "Standard 5-field cron"
+    },
+    {
+     "feature": "CPU priority and affinity",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Server query (A2S, UT3, FiveM): player counts, Starting vs Started",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Firewall helper (netsh)",
+     "status": "🧪",
+     "notes": "Needs Administrator"
+    },
+    {
+     "feature": "File browser + text editor (any file in the server folder)",
+     "status": "✅",
+     "notes": "2 MB limit, path-traversal protected"
+    },
+    {
+     "feature": "Discord webhook alerts (per-server webhook with the old flags)",
+     "status": "🧪",
+     "notes": "Start, crash, auto restart, auto update, crontab; now sent by `services/discord.js`"
+    },
+    {
+     "feature": "Steam login for games that need a real account",
+     "status": "⏳",
+     "notes": "Anonymous only for now"
+    },
+    {
+     "feature": "Discord bot remote control",
+     "status": "🧪",
+     "notes": "See the slash-command rows below"
+    },
+    {
+     "feature": "Scheduled (cron) backups per server",
+     "status": "⏳",
+     "notes": "Only manual, bulk, backup-on-start and retention exist"
+    },
+    {
+     "feature": "**Web mode**: headless server (`npm run serve`, `nodegsm` bin): the same ServerManager and services, controlled from a browser over HTTP + WebSocket",
+     "status": "🧪",
+     "notes": "`src/server/headless.js`; same API table as the IPC (`POST /api/<channel>`), live status / console / metrics over `/ws`; automated tests run on Windows, no real-world use yet - [docs/GUIDE-web-linux.md](docs/GUIDE-web-linux.md)"
+    },
+    {
+     "feature": "Web mode security: token login (env or generated `<data>/web-token`, 0600), constant-time compare, signed in-memory sessions (`HttpOnly`, `SameSite=Strict`, `Secure` behind HTTPS), bearer token for scripts, failed-login rate limit, Origin / CSRF check, JSON only, body limit, strict static path confinement, loopback bind by default, refuses a public bind without auth",
+     "status": "🧪",
+     "notes": "No accounts / roles (one shared token); no built-in TLS (reverse proxy) - see [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md)"
+    },
+    {
+     "feature": "Web UI: same renderer in both modes (`transport-web.js` = `window.wgsm` over fetch + WebSocket, auto-reconnect), login page, desktop-only controls hidden (folder picker, open folder, plugin install dialogs, tray, start on login, hardware acceleration, restart), backups **Download** endpoint",
+     "status": "🧪",
+     "notes": "`platformInfo` channel + `window.wgsm.mode`; visually checked in the Browser pane on Windows"
+    },
+    {
+     "feature": "Transport-agnostic core: `src/main/core.js` shared by Electron and the headless server",
+     "status": "✅",
+     "notes": "Electron behaviour unchanged; `core.js` / `headless.js` are tested with Electron unresolvable"
+    },
+    {
+     "feature": "Linux platform layer (`src/main/platform.js`): process-group kill, `/proc` CPU / RAM / threads, `taskset` affinity, SteamCMD for Linux (`steamcmd_linux.tar.gz`), `tar` extract, `chmod +x`, XDG data folder, firewall hint (no sudo)",
+     "status": "🧪",
+     "notes": "**Unit-tested with injected fakes only; never run on a real Linux machine**"
+    },
+    {
+     "feature": "Plugin `platforms`, `run.linux`, `run.env`, `install.linux`, steamcmd step `platform`; \"not available on this platform\" badge, creation refused on unsupported OS",
+     "status": "✅",
+     "notes": "Plugins are Windows only by default; `registry.json` lists `platforms`"
+    },
+    {
+     "feature": "Linux declared for 4 plugins: `mc`, `csgo`, `rust`, `palworld`",
+     "status": "🧪",
+     "notes": "**Declared, untested** (from public knowledge of the Linux server builds)"
+    },
+    {
+     "feature": "Docker image (`Dockerfile`, non-root, `/data` volume, health check on `/healthz`), `docker-compose.example.yml`, systemd unit with hardening, nginx + TLS example",
+     "status": "🧪",
+     "notes": "Files only; not built or run here"
+    },
+    {
+     "feature": "Mod manager",
+     "status": "⏳",
+     "notes": ""
+    },
+    {
+     "feature": "**Clusters** (Home > Clusters): same-game server groups with a parent, create / rename / change parent / add and remove servers, delete (never deletes servers)",
+     "status": "🧪",
+     "notes": "`services/cluster.js`, `<data>/clusters.json`; tested headless with fake servers, not yet used on a real multi-server setup - [docs/GUIDE-clusters.md](docs/GUIDE-clusters.md)"
+    },
+    {
+     "feature": "Cluster **update**: update the parent (validate option), then copy its game files to every member without overwriting configs / saves / `cluster.preserve`; dry-run plan, only-changed option, sequential with progress, running members stopped and restarted, one failing member does not stop the rest",
+     "status": "🧪",
+     "notes": "Links are never followed, paths are confined; per-member report"
+    },
+    {
+     "feature": "Cluster **config sync**: copy chosen plugin config files, keeping protected keys (`configs[].protect`, `cluster.protectedConfigKeys`, cluster rules, globs like `rcon.*`) and `NGSM:ignore` lines; ini / properties / cfg / yaml line merge, json deep merge, text / xml whole copy; diff preview, `.bak` on apply",
+     "status": "🧪",
+     "notes": "YAML is line-matched without a YAML library"
+    },
+    {
+     "feature": "Cluster **clear folders**: plugin `cluster.clearFolders` + per-cluster rules, `*` / `?` pattern, age by mtime, dry run, files only, locked files skipped and counted",
+     "status": "🧪",
+     "notes": ""
+    },
+    {
+     "feature": "NGSM event log: start / stop / crash / restart / update / backup / restore / console commands / config edits, daily rotated JSONL, retention (`logging.retentionDays`, default 30 days)",
+     "status": "🧪",
+     "notes": "`services/eventLog.js`; `<data>/logs/ngsm-YYYY-MM-DD.log`; tested headless, not yet observed in a long-running real session. Format: [docs/GUIDE-logging.md](docs/GUIDE-logging.md)"
+    },
+    {
+     "feature": "Plugin `logging.patterns`: console regex -> log entry (rate limited, 1 per pattern per server per 10 s); a pattern id that matches an `events[]` id becomes a Discord-able event `game:<id>`",
+     "status": "🧪",
+     "notes": "Console lines only; `logging.logFiles` scanning is ⏳"
+    },
+    {
+     "feature": "**Logs** screen (Home > Logs): filter by server / level / event / text, auto refresh, Export (text), Clear",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Discord webhook alerts as embeds or simple messages, per event: started, stopped, crashed, restarted, updated, backup, restore + plugin events",
+     "status": "🧪",
+     "notes": "`services/discord.js`; global webhook (`discord.webhookUrl`) plus the per-server webhook; send queue with 429 / `retry_after` handling; tested against a local HTTP server only - never sent to a real Discord yet"
+    },
+    {
+     "feature": "Embed editor (title, description, colour, thumbnail, image, footer, fields) with live Discord-style preview, placeholders `{server} {event} {game} {ip} {port} {players} {time}`, Send test, Reset to default",
+     "status": "✅",
+     "notes": "**Discord** view; templates stored in `settings.discord.templates`"
+    },
+    {
+     "feature": "Per-event toggles (global) and per-server overrides (Default / On / Off); the old per-server flags (Start, Auto restart, Auto update, Crontab restart, Crash) keep working",
+     "status": "🧪",
+     "notes": "Per-server overrides in the server's **Automation** tab"
+    },
+    {
+     "feature": "Webhook URL safety: only `https://discord.com` / `discordapp.com` `/api/webhooks/...` accepted; mentions disabled in messages",
+     "status": "✅",
+     "notes": "Validated in `settings.js` and again at send time"
+    },
+    {
+     "feature": "Discord bot slash commands: `/check` `/list` `/start` `/stop` `/restart` `/update [validate]` `/backup` `/stats` and `/send` (guild commands when a guild id is set, else global); server id autocomplete (`id - name`); long operations defer then edit with an embed; errors are ephemeral",
+     "status": "🧪",
+     "notes": "`services/discordBot.js` (discord.js 14, Guilds intent only, lazy-loaded) + `services/discordCommands.js` (pure handlers, tested with fake interactions). **Not tested against real Discord** (needs your bot token) - [docs/GUIDE-discord.md](docs/GUIDE-discord.md)"
+    },
+    {
+     "feature": "Bot authorisation: default deny; **per-user, per-server permission rules** `<discordId> <serverId> <action,...>` (server `0` / `*` = all servers; actions `check list start stop restart update send backup stats`, shortcuts `all` and `read`); admin roles keep full rights; deprecated `allowedUserIds` keeps its old full access; optional per-server `discordAllowedUserIds` in `wgsm.json` narrows the legacy list only (no UI yet); per-user rate limit (5 commands / 10 s); every attempt logged as `discord:command` (who, command, server, result, required action, via)",
+     "status": "🧪",
+     "notes": "Denied users get an ephemeral message naming the missing action and server; `/list`, `/stats` and the server autocomplete only show what the user may use; `/send` additionally needs the raw-commands switch. [docs/GUIDE-discord.md](docs/GUIDE-discord.md)"
+    },
+    {
+     "feature": "`/send` (raw console command) only when **Allow raw console commands** is on (default off); single line, 500 characters max, the command text is never echoed or logged by the bot",
+     "status": "🧪",
+     "notes": "Dangerous by design - see the guide"
+    },
+    {
+     "feature": "Bot token kept out of the UI: stored as plain text in `settings.json`, but the `settings` / `saveSettings` IPC only return `botTokenSet`; blank keeps, \"Remove saved token\" clears; redacted from errors, status and logs",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Discord view **Bot** section: enable switch, token (password field), application id, guild id, allowed user ids (deprecated), admin role ids, **permissions editor** (one rule per line, live per-line validation, preview table of user / servers / actions), raw-commands switch with warning, status badge, Reconnect, Copy invite link, command list",
+     "status": "🧪",
+     "notes": "Checked in the browser pane with a stub transport"
+    },
+    {
+     "feature": "**Backups: Full or Neat pick** (plugin presets + a tick-box tree of folders/files + exclude patterns, optional server settings), size estimate",
+     "status": "🧪",
+     "notes": "**Backups** tab of a server; `services/backup.js`; streaming zip (`services/zip.js`, zip64), manifest `<backup>.json`; tested headless with fake servers, not yet on a real multi-GB server"
+    },
+    {
+     "feature": "Backup retention (keep the newest N per server, `backupKeep`)",
+     "status": "✅",
+     "notes": "0 = unlimited"
+    },
+    {
+     "feature": "Restore (Full: extract over; Neat pick: only when the game is installed) with zip-slip / symlink protection",
+     "status": "🧪",
+     "notes": "Server is stopped first; optional restore of the saved server settings"
+    },
+    {
+     "feature": "**Restore as new server** (Full: create + extract; Neat pick: create + install + apply; settings with port-conflict resolution)",
+     "status": "🧪",
+     "notes": "Needs the game plugin; old backups without a manifest need the game chosen; Neat pick install needs internet"
+    },
+    {
+     "feature": "**Backups** screen (Home > Backups): all servers, deleted servers marked, filters, Restore / Restore as new / Open folder / Delete",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Plugin `backup.presets` / `backup.exclude` shipped for Minecraft Java, CS:GO, Rust, Palworld, ARK: SE",
+     "status": "🧪",
+     "notes": "Paths are best-effort (not checked against live servers)"
+    },
+    {
+     "feature": "**Files auto-clear**: per-server rules `{ path, pattern, olderThanDays, intervalMin, enabled, recursive, onlyWhenStopped }` in `wgsm.json`, seeded once from plugin `files.autoClear` (user edits are kept); checked every minute; files only, links never followed, locked files skipped, confined to the server folder; Preview / Run now / Edit / Delete in the **Files** tab (\"Auto-clear this folder...\" or right-click a folder)",
+     "status": "🧪",
+     "notes": "Logged to the NGSM log (`autoclear:run`) and the event `server:autoclear`; tested with fake servers only"
+    },
+    {
+     "feature": "**Structured config editor** (ini, properties, cfg, json, simple yaml): comments and unknown lines are kept, JSON keeps its indentation; unparseable files fall back to Raw",
+     "status": "✅",
+     "notes": "`configEdit.js`; list-rooted JSON, block-scalar-only or tab-indented YAML and xml / text are raw only"
+    },
+    {
+     "feature": "**Injected consoles**: Console tab sub-tabs for the plugin's `consoles[]` - game console, read-only **log** tail, **RCON** (Source protocol, also Minecraft)",
+     "status": "🧪",
+     "notes": "`rcon.js` tested against a local fake RCON server only; port and password come from the server's config (`rcon:<port>:<password>` with `{placeholders}`) and never leave the main process"
+    },
+    {
+     "feature": "**Update** and **Validate** are separate buttons (server header, Table toolbar, bulk); busy / status text shows `Updating` or `Validating`; plugin `update.validateArgs.steamcmd` customises the validate arguments",
+     "status": "🧪",
+     "notes": "Validate is `+app_update <id> validate`; see PLUGINS.md"
+    }
+   ]
+  },
+  {
+   "group": "App",
+   "rows": [
+    {
+     "feature": "Electron UI (dark theme)",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Start on Windows login, minimize to tray",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Table view: WindowsGSM-style horizontal server table",
+     "status": "✅",
+     "notes": "ID, PID, game icon, status, name, IP, port, query port, map, players, CPU, memory, uptime ... sortable; double-click opens details"
+    },
+    {
+     "feature": "Multi-select + bulk actions: Start, Stop, Restart, **Kill** (force), Update, Backup",
+     "status": "✅",
+     "notes": "Checkboxes, header \"select all\", Ctrl/Shift click; Stop/Restart/Kill run in parallel, Start/Update/Backup one after another; buttons enable only when they apply; skipped (not applicable) servers are reported"
+    },
+    {
+     "feature": "Choose which columns to show (Settings, Table and Dashboard)",
+     "status": "✅",
+     "notes": "Built-in columns (incl. **Tick**) + plugin metrics + **Latency**; saved; reset to default"
+    },
+    {
+     "feature": "Server tick everywhere: Tick column, `Server tick` dashboard tile, Tick / Latency history chart options, header stat, details-panel rows, green / yellow / red by thresholds",
+     "status": "✅",
+     "notes": "`src/renderer/tick.js` (shared pure helpers: number parsing, `classify`, `aggregateTick`)"
+    },
+    {
+     "feature": "Built-in **Latency** estimate (query round trip, ms) for games without a tick metric",
+     "status": "🧪",
+     "notes": "A2S, UT3 / GameSpy4 and FiveM queries report `ping`; metric id `latency`; labelled Latency, never Tick; needs a game with a `query` protocol"
+    },
+    {
+     "feature": "Dashboard: system CPU / memory / disk, installed + online servers, active players",
+     "status": "✅",
+     "notes": "Refreshes every 5 s"
+    },
+    {
+     "feature": "Dashboard: per-server CPU, memory (whole process tree), threads, uptime, players",
+     "status": "✅",
+     "notes": "One PowerShell process table read per tick, only while servers run"
+    },
+    {
+     "feature": "Dashboard: history chart (players / CPU / memory, per server)",
+     "status": "✅",
+     "notes": "Last 30 minutes, canvas, follows the theme"
+    },
+    {
+     "feature": "Theme: Dark / Light / follow Windows",
+     "status": "✅",
+     "notes": "**Settings**; applied instantly, no flash on start; native dialogs follow the theme"
+    },
+    {
+     "feature": "Accent colour: 11-colour palette + custom colour picker",
+     "status": "✅",
+     "notes": "Not locked behind a donor tier"
+    },
+    {
+     "feature": "UI animation on/off",
+     "status": "✅",
+     "notes": "Transitions, dialog/toast animations"
+    },
+    {
+     "feature": "Hardware acceleration on/off",
+     "status": "✅",
+     "notes": "Applies after a restart (**Restart now** button stops servers gracefully first)"
+    },
+    {
+     "feature": "Auto restart NodeGSM on crash",
+     "status": "✅",
+     "notes": "Relaunches at most 3x per 10 min (no crash loops); crashes logged to `logs/crash.log`; renderer crashes reload the window"
+    },
+    {
+     "feature": "Telemetry / \"send statistics\"",
+     "status": "-",
+     "notes": "Deliberately none"
+    },
+    {
+     "feature": "System metrics in header",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Left navigation: Home (List, Table), System Metrics, Games / Plugins, Settings, Discord",
+     "status": "✅",
+     "notes": "Replaces the header view switch; Games and Settings are full views now (no longer dialogs); the nav itself collapses to an icon rail"
+    },
+    {
+     "feature": "Collapsible server-list, details and quick-settings panels (`ui` setting)",
+     "status": "✅",
+     "notes": "Toggle buttons in the header; state saved in settings and mirrored to localStorage so `theme-boot.js` applies it before first paint; collapsing maximises the main area"
+    },
+    {
+     "feature": "Details panel (status, PID, address, players, map, uptime, CPU, memory) and quick-settings bottom panel (name, port, map, max players, start parameters, Save)",
+     "status": "✅",
+     "notes": "Follow the selected server; unsaved quick-settings edits are not overwritten by status updates"
+    },
+    {
+     "feature": "Header info bar: CPU, RAM, Disk, Servers (running/total), Players, Tick (`headerStats` setting)",
+     "status": "✅",
+     "notes": "Chosen with checkboxes in Settings; Tick = the worst tick metric of the running servers that have one (server names in the tooltip, coloured), `n/a` when none does"
+    },
+    {
+     "feature": "Footer links: Website, Discord, Donate (Patreon, PayPal, Buy Me a Coffee)",
+     "status": "🧪",
+     "notes": "All URLs live in `src/renderer/links.js` and are PLACEHOLDERS to replace"
+    },
+    {
+     "feature": "Discord view: webhook + Send test, event toggles, embed editor + preview, bot settings",
+     "status": "🧪",
+     "notes": ""
+    },
+    {
+     "feature": "Logs screen under Home",
+     "status": "✅",
+     "notes": "See server management table"
+    },
+    {
+     "feature": "Windows installer + portable exe (electron-builder)",
+     "status": "🧪",
+     "notes": "`npm run dist`; unsigned; bundles `plugins/`. The icon is configured (`build.win.icon`) but the .exe keeps the Electron icon while `signAndEditExecutable` is false (needs Developer Mode, see README); not run with the new config here"
+    },
+    {
+     "feature": "NodeGSM logo and icons: hand-written SVG (`assets/logo.svg`, `logo-wordmark.svg`, `icon.svg`), `npm run icons` redraws PNG / ICO without dependencies",
+     "status": "🧪",
+     "notes": "N from stacked server blocks + a network link, accent = default `--accent`. Checked as PNG / SVG here; tray, taskbar and high-DPI look not checked on a real screen. First pass: direction awaits your review"
+    },
+    {
+     "feature": "Logo in the app: header mark (inline SVG, follows the accent colour), window and taskbar icon, tray icon (16 + 32 px)",
+     "status": "🧪",
+     "notes": "`assets/icon*.png`; the `.exe` file icon stays the Electron one while `signAndEditExecutable` is false (README)"
+    },
+    {
+     "feature": "External links open in the default browser; in-app navigation blocked",
+     "status": "✅",
+     "notes": ""
+    },
+    {
+     "feature": "Legacy data folder kept after rename",
+     "status": "✅",
+     "notes": "`%APPDATA%\\node-wgsm2026\\WGSM` if present, else `%APPDATA%\\NodeGSM`; on Linux `$XDG_DATA_HOME/NodeGSM` (default `~/.local/share/NodeGSM`)"
+    },
+    {
+     "feature": "Documentation: guides, `TECH-api.md` (all IPC channels), `TECH-architecture.md`, `TECH-data-formats.md`, `docs/README.md` index, `OPEN-QUESTIONS.md`, `TESTING-CHECKLIST.md`",
+     "status": "✅",
+     "notes": "[docs/README.md](docs/README.md); a test fails when an IPC channel is missing from TECH-api.md"
+    }
+   ]
+  }
+ ],
+ "changelog": [
+  {
+   "title": "2026-11-25 - Discord bot: per-user per-server permission rules",
+   "items": [
+    "**Why:** not every Discord user should be able to run slash commands or manage every installed server. Authorisation is now a list of rules `<discordUserId> <serverId> <action,action,...>` (new setting `settings.discord.permissions`, a list of `{ userId, serverId, actions[] }`).",
+    "**Rules:** `serverId` is a numeric server id, or `0` / `*` for all servers. Actions: `check list start stop restart update send backup stats`, plus the shortcuts `all` (every action; `send` still needs **Allow raw commands**) and `read` (check, list, stats). Case and spaces around commas are tolerated; `#` comments; rules for the same user + server are merged; a user's rules for one server and for 0 are a union.",
+    "**Semantics:** default deny. Server actions need a rule for that server or for 0. `check`, `list`, `stats` are global: any rule listing them is enough; `/list` and `/stats` then show only servers the user has any permission for (all with a server-0 rule). Server autocomplete offers only servers the user may use for that command. Admin roles keep full rights. The deprecated `allowedUserIds` list behaves exactly as before (all commands) and the rules are additive. The per-server `discordAllowedUserIds` narrowing applies to legacy users only; rules are authoritative for their user. No rules + no legacy ids + no admin role = nobody.",
+    "**Denials:** ephemeral and specific (\"You do not have permission to use /restart on server 4.\", never the rule list); the `discord:command` event log entry gets `required` (the action) and the server id (`serverId`); successful entries get `via` (`admin` / `rule` / `legacy`).",
+    "**Code:** new `services/discordPermissions.js` (parse, format, strict sanitise, match; no I/O); `discordCommands.js` `authorize()` / new `authorizeAction()`; `settings.js` sanitises `discord.permissions` (digit-only ids 15-25 long, known actions only, server id 0..999999999, at most 500 rules, merged). The bot reads the rules live (no reconnect; they are not part of the connection signature). Slash-command registration JSON unchanged.",
+    "**IPC:** `discordPermParse(text)` (rules + per-line errors + unknown-server warnings + server names) and `discordPermFormat(rules)`; `saveSettings` carries `discord.permissions`.",
+    "**UI:** Discord > Bot > \"Permissions per user and server\": textarea, help and examples, live validation (errors block saving, unknown servers warn), preview table (user, servers by name, actions). The old \"Allowed user IDs\" box is marked deprecated; the \"nobody is allowed\" warning now also counts rules.",
+    "**Not verified:** nothing was tried against real Discord. See [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (the \"zero for all\" wording was interpreted as server id 0 = all servers; please confirm).",
+    "**Docs:** [docs/GUIDE-discord.md](docs/GUIDE-discord.md) (new permissions section), README, TECH-architecture, TECH-api, TESTING-CHECKLIST, OPEN-QUESTIONS. **Tests:** parser (valid / invalid lines, `*` and 0, all / read, case and spaces, dedupe / merge, cap), settings sanitising, authorisation matrix (server-specific, 0 = all, action not listed, send gate, list / stats / autocomplete filtering, admin, legacy unchanged, narrowing, empty = deny, live read), event log detail, no reconnect on change, registration JSON unchanged, IPC."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Web mode and Linux support (headless server)",
+   "items": [
+    "**Headless web server:** `npm run serve` (also the `nodegsm` bin entry) starts `src/server/headless.js`: Node `http` + the `ws` package (pinned 8.23.0), no Electron. It serves `src/renderer` and `assets/` as static files and mounts the same API table as the IPC on `POST /api/<channel>` (`{ \"args\": [] }` -> `{ ok, data }` / `{ ok: false, error }`); the push events (`status`, `console`, `consoleOut`, `logLines`, `removed`, `metrics`, `cluster:progress`, `discordBot`) arrive over `WebSocket /ws`. Binds `127.0.0.1:8730` by default (`--host`, `--port`, `--data`, env `NODEGSM_*`). SIGINT / SIGTERM stop the game servers through the same shutdown path as quitting the desktop app.",
+    "**Security:** authentication is required. Token from `NODEGSM_TOKEN` or generated on first start into `<data>/web-token` (0600, printed once); login page (`login.html` + `login.js`, no inline scripts) and a signed in-memory session cookie (`HttpOnly; SameSite=Strict`, `Secure` behind HTTPS); bearer token for scripts; constant-time compare; failed logins rate limited per client address (429); Origin must equal Host for cookie requests (CSRF), JSON content type only, request body limit, no CORS; strict path confinement for static files and `GET /download/backup`; `GET /healthz` unauthenticated and returns only `{ \"ok\": true }`; a non-loopback bind without authentication is refused. No TLS built in - use a reverse proxy; tokens are never logged.",
+    "**Core extracted:** `src/main/core.js` (`createCore`) holds everything that used to be wired in `main.js` (data folder contents, settings, plugins, ServerManager, services, MetricsCollector, scheduler start / stop, push-event hub). `main.js` (Electron) and the headless server both use it; Electron behaviour is unchanged. Electron-only ctx members get headless stand-ins (folder picker / open folder / relaunch report \"not available in web mode\").",
+    "**Renderer in both modes:** `transport-web.js` defines `window.wgsm = { call, on, mode }` over fetch + WebSocket (auto-reconnect with backoff, redirect to the login page on 401) and does nothing inside Electron. New `platformInfo` channel (`mode`, `platform`, `features`); desktop-only controls carry the class `desktop-only` and are hidden in web mode; backups get a **Download** button; links open in a new tab; Import accepts a typed path.",
+    "**Linux platform layer** (`src/main/platform.js`): process-group `SIGTERM` / `SIGKILL` instead of `taskkill`, CPU / RAM / threads from `/proc`, `taskset` affinity, SteamCMD from `steamcmd_linux.tar.gz` (`steamcmd.sh`, same arguments, `+@sSteamCmdForcePlatformType` when a step asks for another platform), GNU `tar` extraction, `chmod +x` before start, XDG data folder, firewall \"not managed\" message with a `ufw` hint. `serverManager.js`, `metrics.js`, `steamcmd.js`, `installRunner.js` call it; Windows behaviour is unchanged (the existing tests pass unchanged). **Only unit-tested; never run on real Linux.**",
+    "**Plugins:** optional `platforms` (default Windows only), `run.linux`, `run.env`, `install.linux`, steamcmd step `platform`; validated, in the JSON Schema and in `registry.json`. The game browser and Add Server show a \"not available on this platform\" badge and creation / import is refused. `mc`, `csgo`, `rust` and `palworld` now declare Linux support (**declared, untested**); no other plugin was changed.",
+    "**Deploy files:** `Dockerfile` (node:20-slim, non-root, `/data` volume, port 8730, health check), `.dockerignore`, `docker-compose.example.yml`, `deploy/nodegsm.service` (systemd, hardened), `deploy/nginx.conf.example` (TLS + WebSocket upgrade). `package.json`: `serve`, `serve:dev`, `bin`, dependency `ws` 8.23.0 (about 0.2 MB, already present as a transitive dependency of discord.js).",
+    "**Docs:** new [docs/GUIDE-web-linux.md](docs/GUIDE-web-linux.md); [docs/TECH-architecture.md](docs/TECH-architecture.md) (core bootstrap, web mode, auth model, platform layer), [docs/TECH-api.md](docs/TECH-api.md) (82 channels, `platformInfo`, HTTP + WebSocket protocol), README, PLUGINS.md, CONTRIBUTING.md, TESTING-CHECKLIST (section 12), OPEN-QUESTIONS (Phase 8 web / Linux).",
+    "**Tests:** `/healthz`, 401 without login, login flow and cookie flags, bearer, rate limit, API round trip, WebSocket event delivery from a fake game server, path traversal, cross-origin POST / WebSocket, body limit, non-loopback bind refused, backup download confinement, `/proc` parser, kill / taskset / SteamCMD Linux arguments, platform fields in plugins, loading `core.js` / `headless.js` with Electron unresolvable."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Logo, icons and documentation finalised",
+   "items": [
+    "**Logo:** hand-written SVGs in `assets/` - `logo.svg` (mark only, transparent, accent blue works on dark and light), `logo-wordmark.svg` (mark + \"NodeGSM\", text colour follows light / dark), `icon.svg` (app icon tile). Concept: an N whose stems are stacked server blocks and whose diagonal is a network link with a node at each end; accent = the app's default `--accent` (#4f8cff). A first pass - see [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (Phase 8).",
+    "**`npm run icons`** (`scripts/build-icons.js`, Node built-ins only): redraws the same geometry procedurally (rounded rects, capsule, circles, anti-aliased with signed distances), writes PNGs with zlib and packs `build/icon.ico` (16, 32, 48, 64, 128, 256, PNG-compressed). Outputs: `assets/icon.png` (256), `assets/icon-32.png`, `assets/icon-16.png` (solid stems, readable at small sizes), `build/icon.ico`, `website/assets/logo.png` (mark only) and `website/assets/favicon.png`.",
+    "**Used in:** the app header (inline SVG in the accent colour next to \"NodeGSM\"), `BrowserWindow` icon, tray (16 px image + 32 px representation, falls back to the 256 px icon), the renderer favicon, `package.json` `build.win.icon`, README banner, docs index, website header (`layout.js` already used `assets/logo.png`) and favicons. `signAndEditExecutable: false` is kept on purpose (`npm run pack` keeps working without Developer Mode), so the .exe file itself still shows the Electron icon - README explains how to change that. CSP unchanged.",
+    "**Docs finalised:** FEATURES.md legend and statuses made consistent (anything not verified against a real server or real Discord is 🧪; new rows for scheduled backups, `logging.logFiles` scanning and web / Linux as ⏳); README highlights, docs table (every file in `docs/`) and \"Not done yet\"; PLUGINS.md got one complete example of every optional field (checked with the validator) and the `logging.logFiles` note corrected (declared, not scanned); `plugin.schema.json` id patterns for `events`, `backup.presets`, `logging.patterns`, `consoles`; CONTRIBUTING.md project layout rewritten to the real tree and the plugin-author checklist extended; GUIDE-ui and TECH-architecture stale sentences fixed.",
+    "**New docs:** [docs/TECH-api.md](docs/TECH-api.md) (all 81 IPC channels and the push events), [docs/README.md](docs/README.md) (index), [docs/TESTING-CHECKLIST.md](docs/TESTING-CHECKLIST.md) (manual checks per feature); [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) regrouped by phase with a \"Needs your input first\" list and new Phase 8 / 9 sections (no question removed).",
+    "**Tests:** PNG signatures / IHDR sizes / inflatable pixel data, ICO header and entries (each a PNG, sizes 16-256), SVG sanity, `package.json` icon path, index.html logo and favicon, website favicons, tray / window icon wiring, icon renderer output; every IPC channel of `api.js` appears in TECH-api.md."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Discord bot: slash commands",
+   "items": [
+    "**Dependency:** `discord.js` ^14 (runtime). It is `require`d lazily the first time the bot connects, so the app and the tests run without a bot and without network. electron-builder packs production dependencies automatically; no change to `build.files` was needed (its `src/**` patterns only add the app code).",
+    "**Bot service** (`services/discordBot.js`): connects when `settings.discord.botEnabled` is on and a token is saved (Guilds intent only); registers the commands as guild commands when a guild id is set, else global; reconnects only when enabled / token / application id / guild id change (the allow lists are read live); `stop()` on quit; status `{ state: off | connecting | online | error, user, error, guilds, registered }` through IPC `discordBotStatus` and the pushed `discordBot` event. discord.js reconnects by itself. The token is redacted from every error and status string.",
+    "**Commands** (`services/discordCommands.js`, no discord.js import; plain JSON definitions in Discord's API shape, `registrationJson()`): `/check`, `/list`, `/start`, `/stop`, `/restart`, `/update [validate]`, `/send`, `/backup`, `/stats`. Operations are refused with a readable ephemeral message when the server is unknown, busy, already / not running; long ones `deferReply` and then edit with an embed. Mentions are disabled in every reply.",
+    "**Authorisation:** default deny (empty allow list and no admin role = nobody). `allowedUserIds` (Discord user ids) and `adminRoleIds`; new per-server `discordAllowedUserIds` in `wgsm.json` narrows who may control that server (admins always may). Per-user rate limit (5 / 10 s). Every attempt is written to the NGSM event log as `discord:command` (user id + tag, command, server id, result) and emitted on the event bus.",
+    "**/send** needs `allowRawCommands` (default off), is a single line up to 500 characters, goes through `mgr.sendCommand` and is never echoed back by the bot or stored in the bot's log entry (the normal `server:command` entry still records it).",
+    "**Settings / IPC:** `discord.botEnabled` (default false); `settings` and `saveSettings` now mask the token (`botTokenSet`); a blank token keeps the saved one, `clearBotToken: true` removes it; `saveSettings` asks the bot to re-apply. New IPC `discordBotStatus`, `discordBotRestart`, `discordBotTest` (token format only, no network), `discordBotCommands` (preview).",
+    "**UI:** Discord view > Bot section (see the table above). The \"coming later\" placeholder is gone.",
+    "**Not verified:** nothing was sent to or received from real Discord - it needs a bot token. Tests use a fake discord.js client and fake interactions. See [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md) (Phase 6).",
+    "**Docs:** [docs/GUIDE-discord.md](docs/GUIDE-discord.md) (Bot section), TECH-architecture, README, OPEN-QUESTIONS. **Tests:** registration JSON shape and limits (also against `SlashCommandBuilder`), authorisation matrix, per-server restriction, rate limit, every command, busy refusal, `/send` gating, autocomplete, token masking over IPC and in errors / status / logs, client wiring (login, register, reconnect on change, stop) against a fake discord.js."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Server tick metric",
+   "items": [
+    "**Plugin metrics** (`plugins.js`, `plugin.schema.json`, `_template`): optional `kind: \"tick\"` with `tickTarget`, `higherIsBetter` (default true), `warnBelow` / `badBelow` (higher is better) or `warnAbove` / `badAbove` (times); `patternFlags`; new source `rcon:<command>` (+ `rconConsole` / inline `rconSource`). Validation: numbers, threshold order, the rcon console must exist, tick-only fields refused on other metrics, direction warnings. Existing metrics are unchanged. `registry.json` lists `kind`.",
+    "**Collector** (`metrics.js`): tick values are colour-stripped (ANSI, `§a`) and parsed tolerantly (commas, units); rows carry `metrics[id].{kind,cls,higherIsBetter}` and `row.tick` ({ name, value, unit, cls, target }); history points carry `k` (tick) and `l` (latency). RCON sources are polled silently through `Consoles.poll()` (no console output, no NGSM log entry, password never in errors) on a timer that starts / stops with the server.",
+    "**Latency fallback** (`query.js`, `serverManager.js`): a2s / ut3 / fivem queries return `ping` (ms of the answered request); `pollAll` keeps it as `rt.latency`; a game without a tick metric exposes it as metric `latency` (ms) while it is fresh (60 s).",
+    "**UI**: Table / Dashboard **Tick** column and Latency column, `Server tick` tile, chart options *Tick* and *Latency*, header Tick stat (worst of the running servers, `n/a` otherwise, tooltip with names), details-panel Tick / Latency rows, `.tk-good / .tk-warn / .tk-bad` colours. `tick.js` is shared by the main process and the renderer.",
+    "**RCON** (`rcon.js`): `send()` is now queued per connection (tick polling and a typed console command no longer collide).",
+    "**Fix:** plugin validation rejected literal ports in `rcon:<port>:<password>` console sources (`d{1,5}` instead of `\\d{1,5}`).",
+    "**Plugins:** `mc` (`tps` via `rcon:tps` for Paper / Spigot, `mspt` via `rcon:tick query` for vanilla 1.20.3+), `csgo` (`fps` via `rcon:stats`), `rust` (`fps` via console `fps`); `registry.json` regenerated.",
+    "**Docs:** [docs/GUIDE-metrics.md](docs/GUIDE-metrics.md), PLUGINS.md, README, TECH-architecture, OPEN-QUESTIONS. **Tests:** number parsing, classification, header aggregate, console / RCON (local fake) polling, queued sends, A2S round trip + latency fallback, plugin validation."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Configs editor, files auto-clear, injected console, validate",
+   "items": [
+    "**Configs:** new screen **Home > Configs** (server picker + the plugin's `configs[]` list; with several files nothing opens until you pick one, a single file opens at once) and the same editor in the server's **Config Files** tab (`configsView.js`). Toggle **Structured / Raw**; structured shows key / value rows with search, **Add** and **remove** for ini (sections), properties, cfg (`key value`), json (flat + nested dotted paths, typed values) and simple yaml. `src/main/configEdit.js` (pure `parse` / `edit` / `get`) keeps comments, blank and unknown lines, CRLF and BOM; only the edited line changes. JSON is re-serialised with the file's indentation. Anything that does not parse safely (invalid JSON, list-rooted JSON, tab-indented YAML, xml, text) is raw only and says why. Saving still goes through `configWrite` (`.bak`, `server:config` event in the NGSM log). IPC: `configParse(format, text)`, `configEdit(format, text, ops)`.",
+    "**Files auto-clear** (`services/autoClear.js`): per-server rules `autoClear: [{ path, pattern, olderThanDays, intervalMin, enabled, recursive, onlyWhenStopped, lastRun }]` (+ `autoClearSeeded`) in `wgsm.json`, strictly sanitised in `settings.js` (relative folders only, no `..`, drive letters, `:` or NUL; file-name patterns without `/`; age 0..3650 days; interval 1..525600 min; at most 50 rules). Plugin `files.autoClear` entries are copied **once** per server (`default: true` = enabled, its interval starts at seeding so nothing is deleted right after an upgrade); user edits, disabling and deleting are kept when the plugin changes, new plugin rules appear. `mgr.startScheduler` calls `tick()` every minute: due, enabled rules run (skipped while the server is installing / updating / backing up, or running when `onlyWhenStopped`). Files only, symlinks / junctions never followed, realpath-confined, locked files skipped and counted. Logs `autoclear:run` to the NGSM log and emits `server:autoclear`. IPC `autoClearList(id)`, `autoClearSave(id, rules)`, `autoClearRun(id, ruleIndex?, dryRun?)`. UI: **Files** tab - \"Auto-clear this folder...\" button (or right-click a folder), rules table with On / Run now / Preview / Edit / Delete.",
+    "**Injected consoles** (`services/consoles.js`, `rcon.js`): the Console tab shows sub-tabs when the plugin declares `consoles[]` (a game without it looks as before): **Game console** (stdin / stdout, unchanged `console` event), **log** (read-only tail of a plugin `logs[]` id) and **rcon**. `rcon.js` is a minimal Source RCON client (also Minecraft): connects to `127.0.0.1` only, auth, multi-packet responses (empty end-marker packet, idle fallback), 4096-byte command limit, connect / command timeouts, reconnect on demand, the password never appears in errors, logs, `toString()` or the UI. Source format `rcon:<port>:<password>` where each part is a literal or `{placeholder}` (`{port}` / `{queryPort}` / ... server settings, `{configId:key}`, or `{key}` searched in the config files), resolved in the main process on every command. Output is pushed as `consoleOut { id, consoleId, lines, reset? }`. IPC `consolesList(id)` (never returns sources), `consoleCommand(id, consoleId, text)`, `consoleStart` / `consoleStop` (log consoles). Bundled examples: **mc** (RCON from `server.properties` + `latest.log` + `files.autoClear` for old `*.log.gz` and crash reports) and **csgo** (RCON from `{port}` + `server.cfg`, server logs).",
+    "**Update / Validate:** separate **Update** and **Validate** buttons in the server header and the Table toolbar (and `bulk('validate', ids)`). `mgr.update(id, validate)` shows `Updating` or `Validating` as status / busy text. Plugin `update.validateArgs.steamcmd` (plain words, default `validate`; `+commands` are refused) is used by `steamcmd.buildArgs`; plugin.js installers get `helpers.validate` and `helpers.validateArgs`.",
+    "**Plugins:** `consoles[].source` of a `rcon` console must match `rcon:<port>:<password>`; the id `main` is reserved. mc and csgo got `consoles`, mc `files.autoClear`; `registry.json` regenerated.",
+    "**Tests:** structured round trips for ini / properties / cfg / yaml / json (comments, CRLF, BOM, add / remove, raw-only fallbacks), auto-clear sanitising, seeding, dry run / run / pattern / age / recursion, interval and persisted `lastRun`, `onlyWhenStopped` / busy skipping, path-escape and link rejection, RCON against a local fake server (auth ok / fail, multi-packet, Minecraft-style, no end marker, timeouts, drop + reconnect, size limit, no password leaks), consoles IPC, log console streaming, update / validate wiring."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Clusters: update, config sync, clear folders",
+   "items": [
+    "**`services/cluster.js`** (`Cluster`, also `mgr._cluster`) and **`<data>/clusters.json`** (`{ version: 1, clusters: [{ id, name, game, parentId, memberIds[], createdAt, options }] }`, atomic writes, a corrupt file is set aside as `clusters.json.corrupt-<ms>`). Create needs at least 2 servers, **all the same game**, the parent must be a member, a server can be in **one** cluster only. Rename / set parent / add / remove members / delete (servers are never deleted). When a server is removed it leaves its cluster (`mgr 'removed'`); a deleted parent is replaced by the first remaining member; fewer than 2 servers dissolve the cluster (logged).",
+    "**Cluster update:** updates the parent through `mgr.update(id, validate, { cluster })` (plugin `update.validateArgs` applies), then copies the parent's files to every member **without overwriting** plugin config files (`configs[].path` and `.bak`), `cluster.preserve`, the cluster's own preserve rules and `configs/wgsm.json`. `onlyChanged` skips files with identical size + mtime (copies keep the parent's mtime). Members are processed one after another, running ones are stopped first and restarted afterwards; progress is pushed as `cluster:progress` (`phase`, `percent`, `memberId`, `memberName`, `memberIndex`, `memberCount`, `message`). Dry-run `clusterUpdatePlan` returns counts, sizes and the preserve list per member. Files are copied through a temp name and renamed; symlinks / junctions are never followed (source or destination); a failing member (busy, locked file, blocked path) is reported and the others continue.",
+    "**Config sync** (`services/clusterMerge.js`, pure functions): merge rules for ini, properties, cfg, yaml (line aware), json (deep key paths, 2-space output) and text / xml (whole file). Protected keys are globs (`port`, `rcon.*`, case-insensitive) from `configs[].protect`, `cluster.protectedConfigKeys` and the cluster's own list; lines containing `NGSM:ignore` (`#`, `//`, `;`, `<!-- -->`) keep the member's line, in the parent's or the member's file. A member without the file gets the parent's copy with a `protected key not present in member` warning. `clusterConfigPlan` returns a unified-style diff per member and file (nothing written), `clusterConfigApply` writes with a `.bak` and logs (`cluster:config-sync`, plus `server:config`).",
+    "**Clear folders:** plugin `cluster.clearFolders` + `options.clearFolders` (`{ path, pattern, olderThanDays, recursive? }`); paths confined with `safeRel` / `inside` / `realpath`, links not followed, files only (folders stay), locked files skipped and counted, dry-run plan with files and bytes. New optional rule field `recursive` (schema + validator).",
+    "**Events / log:** `cluster:created`, `cluster:deleted`, `cluster:update-started`, `cluster:update-finished`, `cluster:update-failed`, `cluster:config-synced`, `cluster:cleared` on `mgr.events` (payload `{ id: parentId, name, game, ts, detail }`); NGSM log entries `cluster:*` (see the guide).",
+    "**IPC:** `clusters`, `clusterCreate`, `clusterSave`, `clusterDelete`, `clusterUpdatePlan`, `clusterUpdate`, `clusterConfigPlan`, `clusterConfigApply`, `clusterClearPlan`, `clusterClear`; push event `cluster:progress`.",
+    "**UI:** **Home > Clusters** (`clustersView.js`): cluster list with member status, *Create cluster* dialog (servers grouped by game, parent, name), detail with **Update** (validate / only changed / parent-first, preview, progress bar, per-member result), **Config sync** (file picker, diff preview with warnings, apply), **Clear folders** (rules, preview, run) and **Edit** (name, parent, servers, protected keys, preserve paths, clear rules), delete. Both themes.",
+    "**Plugins:** `cluster` blocks and `configs[].protect` added to `mc`, `arkse` (config protect + saves preserved) and `rust` (`registry.json` regenerated).",
+    "**Tests:** merge for ini / properties / json / yaml / cfg / text / xml (protect globs, every `NGSM:ignore` style, CRLF, missing member file, member-only keys, broken JSON), diff, option sanitising, create validation (mixed games, single member, duplicates, double membership, parent), persistence, config plan / apply (unique ports and rcon kept, `.bak`), update distribution (configs, preserve paths, `wgsm.json` untouched, links not followed, onlyChanged, parent update via `mgr.update(validate)`, busy / blocked member does not stop the others, stop-before / start-after for running members, one operation per cluster), clear folders (pattern, age, no sub-folders, folder kept, path escape and link rejection), member removal cleanup, events and log entries, IPC table, corrupt file.",
+    "Docs: [docs/GUIDE-clusters.md](docs/GUIDE-clusters.md), [docs/TECH-architecture.md](docs/TECH-architecture.md), [docs/TECH-data-formats.md](docs/TECH-data-formats.md), [PLUGINS.md](PLUGINS.md), [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md)."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Backups: full/neat pick, restore, restore as new, backup list",
+   "items": [
+    "**`services/backup.js`** (`BackupService`, also reachable as `mgr.bk()`): modes `full` (whole server folder) and `neatpick` (plugin `backup.presets` ids + chosen relative folders/files, optionally the server's `wgsm.json`). Exclude patterns = plugin `backup.exclude` + user patterns (`*`, `**`, `?`; no `/` = match by name anywhere, with `/` = from the server root). `ServerManager.backup / backupList / restore / deleteBackup` now delegate to it (same names; bulk backup, backup-on-start and old backups keep working).",
+    "**Streaming zip** (`services/zip.js`, no new dependency): files are read, deflated and written chunk by chunk, zip64 when needed, written to `*.partial` and renamed when complete; the reader extracts entry by entry with CRC and size checks. AdmZip is no longer used for backups.",
+    "**Manifest** `backup-<ISO>.json` next to every zip (`version, mode, game, serverName, serverId, createdAt, paths, presets, exclude, sizeBytes, uncompressedBytes, fileCount, gameVersion, includesServerSettings, skipped?, missing?`); backups without one are treated as `full`. Format in [docs/TECH-data-formats.md](docs/TECH-data-formats.md).",
+    "**Safety:** all selection paths are normalised (no `..`, absolute paths, drive letters or `:`), symlinks / junctions are never followed, and every zip entry name is validated before anything is extracted (zip-slip), including through links already in the server folder. Locked files are skipped and counted.",
+    "**Retention:** new per-server setting `backupKeep` (0 = unlimited, max 1000) in `wgsm.json`, sanitised in `settings.js`; old backups and manifests are deleted after each new backup (`backup:pruned` log entry).",
+    "**Restore:** Full extracts over the files (server stopped first); Neat pick requires an installed server (\"install the game first, then restore\"); a backup of another game is refused; `restoreSettings` optionally re-applies the saved `wgsm.json`. **Restore as new server** (`restoreAsNew`) creates a new server from the manifest's game (Full: extract; Neat pick: run the install, then apply), applies the saved settings except `id / game / installDir`, moves a taken port to the next free one, removes the new server again on failure and reports a missing plugin clearly. Old backups without a manifest need `game`.",
+    "**Events:** `server:backup` detail now has `mode, sizeBytes, fileCount, skipped`; `server:restore` has `mode, fileCount` and, for restore-as-new, `asNew, from`. Extra NGSM log entries `backup:pruned / backup:skipped / backup:failed / backup:restore-failed` (the event log registers itself as `mgr.eventLog`).",
+    "**IPC:** `backups()` = all backups of all servers (server name, game, `deleted`, `legacy`, manifest), `backups(folder)`, `backup(id, opts)`, `backupInfo(id)` (presets, plugin excludes, retention), `backupPreview(id, opts)`, `restore(id, file, opts)`, `restoreNew(folder, file, opts)`, `deleteBackup`, `backupDownload(folder, file)` (reveals the zip), `backupOpenFolder(folder)`.",
+    "**UI:** server **Backups** tab with the Full / Neat pick chooser (presets, tick-box tree, exclude patterns, settings tick, size estimate, retention, list with actions) and the new **Home > Backups** screen with filters; \"Restore as new server\" dialog. Both themes. The tab is no longer re-rendered on status updates (it would reset the selection).",
+    "**Plugins:** `backup.presets` / `backup.exclude` added to `mc`, `csgo`, `rust`, `palworld`, `arkse` (`registry.json` regenerated).",
+    "**Tests:** helpers (paths, excludes, crc32, zip64 + corruption), full roundtrip, neat pick with presets / exclude / settings, preview, path confinement, symlink skip, zip-slip (6 variants, nothing written, no server created), legacy backup, retention, bulk backup, restore-as-new (full, neat pick with install, legacy, missing plugin, failing install, from a deleted server), neat pick refused when not installed, wrong game refused, events and log entries, all-backups listing, IPC.",
+    "Docs: [docs/GUIDE-backups.md](docs/GUIDE-backups.md), [docs/TECH-data-formats.md](docs/TECH-data-formats.md), [docs/TECH-architecture.md](docs/TECH-architecture.md)."
+   ]
+  },
+  {
+   "title": "2026-11-24 - NGSM event log, Discord alerts and embed editor",
+   "items": [
+    "**Event log** (`src/main/services/eventLog.js`): subscribes to `mgr.events` (started, stopped, crashed = \"stopped suddenly\", restarted, updated, backup, restore, console command, config edit) and exposes `log(entry)` for other services. Entries `{ ts, level, event, serverId, serverName, message, detail }` are appended to `<data>/logs/ngsm-YYYY-MM-DD.log` (JSONL, one file per day), pruned on start and daily by `settings.logging.retentionDays`. `query({ serverId, level, event, text, since, limit })`, `export()` (text or JSONL) and `clear()`.",
+    "**Plugin `logging.patterns`** now work: each console line of a server is matched against its game's patterns; hits become entries (`pattern:<id>`, or `game:<id>` when the id is also declared in `events[]`), at most once per pattern per server per 10 s.",
+    "**Logs screen** (Home > Logs) and IPC `eventLogQuery`, `eventLogExport` (returns text), `eventLogClear`.",
+    "**Discord service** (`src/main/services/discord.js`) replaces `ServerManager.alert()`: per-event embeds or simple messages to the global webhook and the per-server webhook; per-event toggles (`settings.discord.events`) with a per-server override (`discordEvents` in `wgsm.json`); the old per-server flags still decide the per-server webhook for start / crash / auto restart / crontab restart / auto update. Send queue with a small delay, 429 handling (`retry_after`), retries on 5xx, never throws; the sender is injectable for tests (`allowAnyUrl`, `agent`).",
+    "**Templates** in `settings.discord.templates` (mode `simple` | `embed`, title, description, colour, thumbnail, image, footer, up to 10 fields) with placeholders `{server} {event} {game} {ip} {port} {players} {time}` (also `{id} {reason} {file} {message}`); defaults: started green, stopped grey, crashed red, restarted/updated blue, backup/restore teal. Mentions are disabled in every message.",
+    "**Settings hardening:** `settings.discord.templates`, the webhook URL and the per-server `discordWebhook` / `discordEvents` / `discordMessage` are sanitised (strict types, length caps, https-only image URLs, webhook host allow-list). **Behaviour change:** a webhook that is not a Discord webhook URL is now rejected (global: dropped; per server: the save fails with a message). `ServerManager.saveConfig` runs the per-server check.",
+    "**IPC:** `discordInfo`, `discordTest(kind, template)` (sends to the saved global webhook, returns `{ ok, status }`), `discordPreview(template, sampleVars, event)` (rendered embed JSON).",
+    "**UI:** Discord view (webhook + Send test, event toggles, embed editor with a live Discord-style preview, light and dark), Logs screen, per-server **Discord event overrides** in the Automation tab. The renderer CSP now allows `https:` images so thumbnails/images show in the preview.",
+    "**Bus:** new events `server:config` and `plugins:reloaded`, `ngsm:log` (every logged entry); `server:restarted` carries `reason` (`manual` | `crash` | `cron`), `server:updated` carries `auto/from/to` for auto updates.",
+    "**Tests:** event log write / query / rotation / retention / patterns / rate limit / export / clear; Discord rendering, placeholders, toggle logic, legacy flag mapping, 429 retry, test-send and queue order against a local HTTP server (never a real Discord); settings sanitising; API table.",
+    "Docs: [docs/GUIDE-logging.md](docs/GUIDE-logging.md), [docs/GUIDE-discord.md](docs/GUIDE-discord.md), [docs/TECH-architecture.md](docs/TECH-architecture.md)."
+   ]
+  },
+  {
+   "title": "2026-11-24 - New app shell: collapsible nav, panels, header stats, footer",
+   "items": [
+    "**Left navigation** (Home > List / Table, System Metrics, Games / Plugins, Settings, Discord) replaces the header view switch. `body[data-view]` now takes `servers | table | dashboard | plugins | settings | discord`; only the first three are remembered in `settings.view`.",
+    "**Games browser and Settings** moved from dialogs to full views (same render code and handlers). **Add Server** stays a dialog. The Discord view is a placeholder.",
+    "**Panels:** collapsible server list (left), details (right) and quick settings (bottom) with toggle buttons in the header and a collapsible nav. State is saved in `settings.ui` and mirrored to `localStorage` (`nodegsm.ui`) so `theme-boot.js` applies it before first paint. New file `src/renderer/shell.js`.",
+    "**Header info bar** driven by `settings.headerStats` (CPU, RAM, Disk, Servers, Players, Tick); checkboxes in Settings. Tick shows \"-\" for now.",
+    "**Footer** with Website / Discord / Donate links; URLs are placeholders in `src/renderer/links.js`, opened through `openExternal` (http/https only).",
+    "**Tests:** ui/headerStats round trip, `links.js` constants are http(s), `index.html` has no inline scripts and contains the nav, panels and footer elements, `theme-boot.js` applies the layout.",
+    "Guide: [docs/GUIDE-ui.md](docs/GUIDE-ui.md)."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Foundation for clusters, Discord and backups",
+   "items": [
+    "**`src/main/api.js`:** the IPC `handle()` table moved out of `main.js` into `buildApi(ctx)` (`{ name: fn }`); `main.js` mounts it on `ipcMain` with the same channel names and `{ ok, data }` / `{ ok: false, error }` wrapping. No behaviour change; a web transport can mount the same table later.",
+    "**Event bus:** `ServerManager.events` (EventEmitter) emits `server:started | stopped | crashed | restarted | updated | backup | restore | command` with `{ id, name, game, ts, detail }`. The existing Discord `alert()` calls are unchanged.",
+    "**Service skeletons** in `src/main/services/` (`eventLog`, `discord`, `discordBot`, `backup`, `cluster`, `autoClear`): constructed and started/stopped from `main.js`, no behaviour yet.",
+    "**New settings keys** (validated in `settings.js`): `ui` (panel collapse flags), `headerStats` (cpu, ram, disk, servers, players, tick), `discord` (webhook, bot token, application/guild id, allowed user ids, admin role ids, `allowRawCommands`, per-event toggles) and `logging.retentionDays`. Nested patches merge key-wise. Note: the bot token is stored as plain text in `settings.json`.",
+    "**Optional plugin fields** (all backward compatible): `cluster`, `configs[].protect`, `backup`, `events`, `logging`, `consoles`, `update.validateArgs`, `files.autoClear`. Added to `plugin.schema.json`, validation (relative paths without `..`, regexes compile, ids unique), `toGame()`, `registry.json` (only when present), `plugins/_template` and PLUGINS.md.",
+    "**Fixed:** a console command written while a server was being stopped could raise an unhandled `EPIPE` on the process stdin; stdin errors are now ignored.",
+    "**Tests:** new fields accepted/rejected, settings sanitising of the new keys, `server:*` events from a fake server (start, command, stop, backup, restore, kill, crash), API table and service skeletons."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Dashboard, server table and bulk actions",
+   "items": [
+    "**Views:** header switch *List / Table / Dashboard* (last view remembered). **Table** is the horizontal WindowsGSM-style list with checkboxes; **Dashboard** shows system CPU/memory/disk, server counts, active players, a 30-minute history chart (players / CPU / memory) and the running-server table.",
+    "**Multi-select bulk actions:** Start, Stop, Restart, Kill, Update, Backup on any number of selected servers (new `kill` = force-stop the whole process tree; `bulk` runner with per-server results).",
+    "**Column picker** in Settings (also on the Table toolbar and Dashboard): ID, PID, icon, status, name, game, IP, port, query port, map, players, CPU, memory, uptime, threads, restarts + plugin metrics. One list for Table and Dashboard; reset to default.",
+    "**Plugin `metrics`** (FPS, tick rate, entities ...): regex on console or a declared log, optional console command polled on a timer; validated, in the schema and template.",
+    "**Fixed:** PID / CPU / memory stayed empty for servers without a query port (the first Started event fired before the process existed); deleting a server no longer leaves its backups for a new server that reuses the id (they are moved aside as `<id>.deleted-<time>`).",
+    "**Tests:** process-tree totals, collector (CPU/memory/threads, console + command + log metrics, history), bulk start/stop/kill/backup incl. skipped and unknown actions, settings sanitising."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Themes, settings and documentation links",
+   "items": [
+    "**Settings dialog rebuilt:** theme (Dark / Light / Windows), accent colour (11 presets + custom picker), UI animation, hardware acceleration (restart button), start on login, minimize to tray, auto restart on crash. Changes apply and save immediately; values are validated (`src/main/settings.js`). The light theme covers the whole UI (terminal, dialogs, badges, logs).",
+    "**Auto restart on crash:** uncaught main-process errors are logged and the app relaunches (max 3 per 10 minutes, servers stopped gracefully first); a crashed renderer reloads the window.",
+    "**Plugin `docs` array:** official and unofficial documentation links per game (`title`, `url`, `type`, optional `description`). Validated (http/https only), shown in the **Games** browser grouped Official / Unofficial, exported in `registry.json`, required for repository plugins (validator + PR checklist). Added to all 46 built-in plugins and `plugins/_template`.",
+    "**Tests:** docs validation, settings sanitising/persistence, crash-restart policy."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Website",
+   "items": [
+    "**New `website/`**: futuristic dark-mode static site (Home, Features & changelog, Plugins, Download). Layout inspired by the WindowsGSM site, written from scratch.",
+    "**Plugins page** with forgiving search (fixed: \"7daytodie\" / \"7 days to die\" now find 7 Days to Die; matches names, ids, abbreviations, tags, app ids and small typos, ranked by relevance), tag filter, sort, per-plugin drawer (details, README, official/unofficial docs, how to install), zip download, star rating, comments and a Markdown **community info** page anyone can edit (revision history).",
+    "**Own backend** `website/server/` (dependency-free Node server: static site + `/api`): shared ratings, comments, community info with revisions, download counts, admin moderation (delete comment, revert info), rate/size/link limits, hashed IPs, CORS allow-list; 17 tests (`npm run test:site`). Falls back to per-browser storage when it is not reachable.",
+    "**Plugin catalog** `scripts/build-catalog.js` (`npm run catalog`): `index.json` + deterministic per-plugin zips (sha256) + icons, with `hasScript`, `minAppVersion` and docs links. The site reads it from `CATALOG_URL`, so it can be served from a separate plugins repo; the same file is what the app's future online mode will use.",
+    "**`npm run site`** (`scripts/build-site.js`) generates `website/catalog/` and `website/data/site.json` (both gitignored); `.github/workflows/site.yml` publishes the static part to GitHub Pages."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Everything is a plugin",
+   "items": [
+    "**All games converted to plugins** (`plugins/<id>/plugin.json`, icon, README); the hard-coded catalog (`games.js`) and built-in installers are gone. Palworld added as a built-in plugin.",
+    "**New plugin format (v2):** `install.steps` (steamcmd / download / extract / run / write / mkdir / script), `run` (exe, args templates, stdin, stopCommand), `defaults`, `configs`, `logs`, `media`. Breaking change for the short-lived v1 format (flat `exe`/`args`); local plugins must be updated - see PLUGINS.md.",
+    "**Config Files tab** for plugin-declared INI/JSON/etc files; **Logs tab** with live tail of multiple logs.",
+    "**Games browser** with README, screenshots, defaults, configs and logs; plugin install from ZIP/folder; local overrides of built-ins.",
+    "**Fixed:** GoldSource games (CS 1.6, CZ, DoD, DMC, HLOF, Ricochet, TFC) now install via HLDS app 90 like WindowsGSM; EGS launches with `-startDedi`; PocketMine uses `-c bin/php`; 7DTD log path; ARK/Insurgency map strings.",
+    "**Contributor tooling:** `CONTRIBUTING.md` (how to PR a game), PR + issue templates, CI workflow, `npm run validate:plugins`, `npm run registry` (`plugins/registry.json`), JSON Schema, `plugins/_template`.",
+    "**Tests:** template expansion, install steps against a local HTTP server (download/extract/write, path-traversal blocked), config read/write/validate/backup, live log tail (append, rotation, wildcard), plugin install/override, run a fake server."
+   ]
+  },
+  {
+   "title": "2026-11-24 - Earlier",
+   "items": [
+    "**Docs rule:** FEATURES.md, README.md, CLAUDE.md added; every change updates docs.",
+    "**Renamed to NodeGSM.** User-visible names changed; internal names (`wgsm.json`, `.wgsm-version`) kept. Legacy data folder still used if it exists. Firewall rules are now named `NodeGSM #...`.",
+    "**Install progress and honest results.** Percent/GB progress; install fails if the download did not complete or the exe is missing; SteamCMD self-updates on first run (previously exit code 7 was wrongly treated as success).",
+    "**First plugin system** (flat `plugin.json`), Plugins dialog, Palworld example.",
+    "**Windows exe builds** via electron-builder (installer + portable).",
+    "**Initial Electron port** of WindowsGSM: catalog, SteamCMD, server manager, query, UI, smoke test."
+   ]
+  }
+ ],
+ "repo": "https://github.com/ohmcodes/Node.WGSM2026"
+}

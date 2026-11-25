@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NodeGSM Plugins</title>
+<meta name="description" content="Search, download, rate and improve NodeGSM game plugins. Community-maintained info for every game.">
+<meta name="theme-color" content="#05060d">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="plugins">
+<main>
+<div class="ph wrap"><h1>NodeGSM <span class="grad">Plugins</span> 🧩</h1>
+  <p>Every game is a plugin. Search, download, rate, and keep the community info up to date as games change.</p></div>
+<div class="toolbar"><div class="wrap">
+  <div class="search">
+    <input class="in" id="q" type="search" placeholder="Search games, tags, Steam app id..." autocomplete="off" aria-label="Search plugins">
+    <select class="in" id="sort" aria-label="Sort"><option value="name">Sort: Name</option><option value="rating">Sort: Top rated</option><option value="downloads">Sort: Most downloaded</option><option value="players">Sort: Max players</option></select>
+  </div>
+  <div class="chips" id="chips"></div>
+  <p class="mute" style="font-size:.85rem;margin:10px 0 0">Showing <b id="shown">0</b> of <b id="total">0</b> plugins</p>
+</div></div>
+<section style="padding-top:18px"><div class="wrap">
+  <div class="grid g3" id="list"><div class="empty" style="grid-column:1/-1">Loading plugins...</div></div>
+  <div class="cta-band reveal" style="margin-top:56px"><h2>Create a plugin</h2><p class="mute" style="max-width:560px;margin:0 auto 22px">A plugin is a folder with <code>plugin.json</code>, an icon and a README. Open a pull request and it ships with the next release.</p>
+    <a class="btn primary" id="guide" href="#" target="_blank" rel="noopener">Read the plugin guide</a></div>
+</div></section>
+</main>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Plugin details"><div class="bk"></div><div class="pn"><button class="x" aria-label="Close">✕</button></div></div>
+<script src="config.js"></script>
+<script src="layout.js"></script>
+<script src="community.js"></script>
+<script>document.getElementById('guide').href = window.NODEGSM_SITE.CATALOGUE_REPO + '/blob/main/CONTRIBUTING.md';</script>
+<script src="plugins.js"></script>
+</body>
+</html>
