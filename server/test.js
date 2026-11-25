@@ -138,6 +138,33 @@ const A = { 'X-Client-Id': 'client-aaaaaa' }, B = { 'X-Client-Id': 'client-bbbbb
     await new Promise((x) => b.s.close(x)); await new Promise((x) => gh.close(x));
   }
 
+  // repository stars: read from GitHub in the background, kept in the data file
+  {
+    const http = require('http');
+    const asked = []; let down = false;
+    const gh = http.createServer((req, res) => {
+      asked.push(req.url); if (down) { res.writeHead(403); return res.end('{}'); }
+      const stars = { '/repos/alice/rust-plugin': 42, '/repos/bob/mc-plugin': 7 };
+      if (!(req.url in stars)) { res.writeHead(404); return res.end('{}'); }
+      res.writeHead(200, { 'Content-Type': 'application/json', 'x-ratelimit-remaining': '50' }); res.end(JSON.stringify({ stargazers_count: stars[req.url] }));
+    });
+    await new Promise((x) => gh.listen(0, '127.0.0.1', x));
+    const d4 = fs.mkdtempSync(path.join(os.tmpdir(), 'ngsm-stars-')); const idx4 = path.join(d4, 'index.json');
+    fs.writeFileSync(idx4, JSON.stringify({ plugins: [
+      { id: 'rust', url: 'https://github.com/alice/rust-plugin' }, { id: 'mc', repo: 'bob/mc-plugin' },
+      { id: 'gone', url: 'https://github.com/nobody/deleted' }, { id: 'steam', url: 'https://steamdb.info/app/1/info/' }] }));
+    let b = await boot({ dataDir: d4, catalogIndex: idx4, githubApi: `http://127.0.0.1:${gh.address().port}`, starsEvery: 0 });
+    await call(b.base, 'GET', '/api/stars'); // starts the background fill
+    let st = {}; for (let i = 0; i < 40 && !(st.rust && st.mc); i++) { await new Promise((x) => setTimeout(x, 50)); st = (await call(b.base, 'GET', '/api/stars')).json; }
+    assert.deepStrictEqual(st.rust, { stars: 42, repo: 'alice/rust-plugin' }); assert.strictEqual(st.mc.stars, 7);
+    assert.ok(!st.gone && !st.steam, 'deleted repositories and non-GitHub plugins have no stars');
+    assert.ok(!asked.some((u) => /steamdb/.test(u))); ok('stars: read from GitHub for plugins with a GitHub url');
+    b.s.store.flush(); await new Promise((x) => b.s.close(x)); down = true; const before = asked.length;
+    b = await boot({ dataDir: d4, catalogIndex: idx4, githubApi: `http://127.0.0.1:${gh.address().port}`, starsEvery: 0 });
+    st = (await call(b.base, 'GET', '/api/stars')).json; assert.strictEqual(st.rust.stars, 42); assert.strictEqual(asked.length, before, 'fresh numbers are not asked again'); ok('stars: kept in the data file, not re-requested while fresh');
+    await new Promise((x) => b.s.close(x)); await new Promise((x) => gh.close(x));
+  }
+
   // rate limit
   ({ s, base } = await boot({ rate: { comment: [2, 60e3], info: [6, 60e3], rating: [30, 60e3], download: [1, 60e3] } }));
   await call(base, 'POST', '/api/plugins/mc/comments', { text: 'one one' }, A); await call(base, 'POST', '/api/plugins/mc/comments', { text: 'two two' }, A);

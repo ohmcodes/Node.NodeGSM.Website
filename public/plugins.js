@@ -33,6 +33,25 @@
   const abs = (r) => (r ? new URL(r, CAT).href : '');
   data.plugins.forEach((p) => { p.icon = abs(p.icon); p.banner = abs(p.banner); p.zip = abs(p.zip); p.contributors = p.contributors || []; p._n = norm(p.name + p.fullName + p.id + p.maker); p._x = norm([p.summary, p.steamAppId, p.maker, ...p.contributors, ...p.tags].join(' ')); });
   ratings = await Community.summaries();
+  let stars = {}; Community.stars().then((s) => { stars = s || {}; render(); }); // not awaited: the list must not wait for GitHub numbers
+  const ghOwner = (p) => String(p.repo || (stars[p.id] || {}).repo || '').split('/')[0];
+  const fmtStars = (n) => (n >= 10000 ? Math.round(n / 1000) + 'k' : n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : String(n));
+  // people with a picture: the maker when they own the plugin's GitHub repository, contributors written as "@login" (or a github.com link).
+  // A plain name is never guessed to be a GitHub user (that could show a stranger's face); it gets a letter badge instead.
+  const person = (name, login, role) => {
+    const letter = $esc((String(name).replace(/^@/, '').trim()[0] || '?').toUpperCase());
+    const img = login ? `<img src="https://github.com/${encodeURIComponent(login)}.png?size=72" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('i'),{textContent:'${letter}'}))">` : `<i>${letter}</i>`;
+    const label = `<span><b>${$esc(String(name).replace(/^@/, '').replace(/^https?:\/\/github\.com\//, ''))}</b><small>${role}</small></span>`;
+    return login ? `<a class="pp" href="https://github.com/${encodeURIComponent(login)}" target="_blank" rel="noopener noreferrer">${img}${label}</a>` : `<span class="pp">${img}${label}</span>`;
+  };
+  const loginOf = (s) => { const m = /^(?:@|https?:\/\/github\.com\/)([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\/?$/.exec(String(s).trim()); return m ? m[1] : ''; };
+  const people = (p) => {
+    const own = ghOwner(p), mk = String(p.maker || '').trim();
+    const l = [];
+    if (mk) l.push(person(mk, own && mk.toLowerCase() === own.toLowerCase() ? own : '', 'maker'));
+    for (const c of p.contributors) l.push(person(c, loginOf(c), 'contributor'));
+    return l.length ? `<div class="ppl">${l.join('')}</div>` : '';
+  };
   $('#total').textContent = data.count;
   $('#chips').innerHTML = ['All'].concat(data.tags).map((t) => `<button class="chip ${t === 'All' ? 'on' : ''}" data-t="${$esc(t === 'All' ? '' : t)}">${$esc(t)}</button>`).join('');
   $('#chips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; state.tag = b.dataset.t; state.page = 1; [...$('#chips').children].forEach((c) => c.classList.toggle('on', c === b)); render(); };
@@ -72,7 +91,7 @@
     drawPager(total, pages, from, l.length);
     $('#list').innerHTML = l.length ? l.map((p) => {
       const rt = ratings[p.id] || { avg: 0, count: 0 }; const dls = rt.downloads ? ` · ⬇ ${rt.downloads}` : '';
-      return `<button class="card pcard reveal" data-id="${$esc(p.id)}">${p.banner ? `<img class="cover" loading="lazy" src="${$esc(p.banner)}" alt="">` : ''}<div class="top"><img loading="lazy" src="${$esc(p.icon)}" alt="${$esc(p.name)}"><div><h3>${$esc(p.name)}</h3><span class="by">by ${$esc(p.maker || 'unknown')}${p.contributors.length ? ' +' + p.contributors.length : ''}</span><span class="mute" style="font-size:.78rem;display:block">v${$esc(p.version)} · ${$esc(p.install)}${dls}${p.hasScript ? ' · script' : ''}</span></div></div>
+      return `<button class="card pcard reveal" data-id="${$esc(p.id)}">${p.banner ? `<img class="cover" loading="lazy" src="${$esc(p.banner)}" alt="">` : ''}<div class="top"><img loading="lazy" src="${$esc(p.icon)}" alt="${$esc(p.name)}"><div><h3>${$esc(p.name)}</h3><span class="by">by ${$esc(p.maker || 'unknown')}${p.contributors.length ? ' +' + p.contributors.length : ''}</span><span class="mute" style="font-size:.78rem;display:block">v${$esc(p.version)} · ${$esc(p.install)}${dls}${stars[p.id] ? ` · ★ ${fmtStars(stars[p.id].stars)}` : ''}${p.hasScript ? ' · script' : ''}</span></div></div>
       <p class="d">${$esc(p.summary)}</p><div class="foot"><span>${p.tags.slice(0, 3).map((t) => `<span class="tag">${$esc(t)}</span>`).join('')}</span><span title="${rt.count} ratings">${rt.count ? $stars(rt.avg) + ' <small class="mute">' + rt.count + '</small>' : '<small class="mute">Not rated</small>'}</span></div></button>`;
     }).join('') : '<div class="empty" style="grid-column:1/-1">No plugins match your search. <a href="' + C.CATALOGUE_REPO + '/issues/new?template=game-request.md" target="_blank" rel="noopener">Request this game</a>.</div>';
     $reveal();
@@ -101,8 +120,9 @@
     const rt = c ? c.rating : { avg: 0, count: 0, mine: 0 };
     let h = `<div class="dh"><img src="${$esc(p.icon)}" alt=""><div><h2>${$esc(p.fullName)}</h2><div class="by">by <b>${$esc(p.maker || 'unknown')}</b>${p.contributors.length ? ' · contributors: ' + p.contributors.map($esc).join(', ') : ''}</div>
       <div>${rt.count ? $stars(rt.avg) + ` <span class="mute">${rt.avg.toFixed(1)} · ${rt.count} rating${rt.count > 1 ? 's' : ''}</span>` : '<span class="mute">No ratings yet</span>'}</div></div></div>
+      ${people(p)}
       ${p.banner ? `<img class="banner" src="${$esc(p.banner)}" alt="">` : ''}<p class="mute" style="margin-top:0">${$esc(p.description || p.summary)}</p>
-      <div class="cta" style="justify-content:flex-start"><a class="btn primary" id="dlzip" href="${$esc(p.zip)}" download>⬇ Download plugin (.zip)</a>${p.source ? `<a class="btn" href="${$esc(p.source)}" target="_blank" rel="noopener">Source / edit on GitHub ↗</a>` : ''}</div>
+      <div class="cta" style="justify-content:flex-start"><a class="btn primary" id="dlzip" href="${$esc(p.zip)}" download>⬇ Download plugin (.zip)</a>${p.source ? `<a class="btn" href="${$esc(p.source)}" target="_blank" rel="noopener">Source / edit on GitHub ↗</a>` : ''}${stars[p.id] ? `<a class="btn" href="https://github.com/${$esc(stars[p.id].repo)}" target="_blank" rel="noopener noreferrer" title="GitHub stars of the plugin's original repository">★ ${stars[p.id].stars.toLocaleString()} on GitHub</a>` : ''}</div>
       <div class="kv">${kv('Version', p.version)}${kv('Install', p.install + (p.steamAppId ? ' · app ' + p.steamAppId : ''))}${kv('Game port', (p.ports || {}).game)}${kv('Query port', (p.ports || {}).query)}${kv('Max players', p.maxPlayers)}${kv('Query', p.query)}</div>
       <div class="tabs">${[['info', 'Community info'], ['readme', 'Details'], ['comments', 'Comments' + (c ? ` (${c.comments.length})` : '')], ['install', 'How to install']].map(([k, t]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${t}</button>`).join('')}</div>`;
     if (p.hasScript) h += `<div class="note">This plugin includes a <code>plugin.js</code> script that runs with full access to your PC. Only install it if you trust the source, and read the code first.</div>`;

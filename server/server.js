@@ -47,6 +47,7 @@ function createApp(opts = {}) {
     appRepo: process.env.APP_REPO || 'ohmcodes/Node.NodeGSM',
     githubBranch: process.env.GITHUB_BASE_BRANCH || 'main',
     githubApi: process.env.GITHUB_API_URL || 'https://api.github.com',
+    starsEvery: 2 * 60e3, // minimum time between two star refresh runs
   }, opts);
   // [max, window ms] per hashed IP. submit: 1 per 10 min and 3 per day (only accepted submissions count); submitTry: every attempt
   o.rate = Object.assign({ comment: [5, 10 * 60e3], info: [6, 10 * 60e3], rating: [30, 3600e3], download: [1, 10 * 60e3], submit: [1, 10 * 60e3], submitDay: [3, 24 * 3600e3], submitTry: [30, 10 * 60e3], submitStatus: [60, 10 * 60e3] }, opts.rate);
@@ -55,7 +56,11 @@ function createApp(opts = {}) {
   // feed events "new plugin" / "plugin updated": the Catalogue has no dates, so the site notices changes between two reads of index.json.
   // The first read only records a baseline (no events), otherwise every existing plugin would show up as new.
   const onCatalog = (j) => {
-    const snap = {}; for (const p of j.plugins) snap[p.id] = { n: String(p.name || p.id), v: String(p.version || '') };
+    const snap = {}; for (const p of j.plugins) {
+      snap[p.id] = { n: String(p.name || p.id), v: String(p.version || '') };
+      // the Catalogue's lean index carries "repo" (owner/name); a plain github.com "url" is accepted too
+      const g = /^([\w.-]+)\/([\w.-]+)$/.exec(String(p.repo || '')) || /^https:\/\/github\.com\/([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/.exec(String(p.url || '')); if (g) repoOf.set(p.id, g[1] + '/' + g[2]); else repoOf.delete(p.id);
+    }
     const old = store.data.catalog;
     if (old) {
       for (const [id, c] of Object.entries(snap)) {
@@ -132,8 +137,35 @@ function createApp(opts = {}) {
     return app.busy;
   };
 
+  // ---- GitHub stars of each plugin's source repository (the plugin's "url", when it is a github.com repository).
+  // Filled slowly in the background: a few repositories per run, oldest answer first, and it stops when GitHub's rate limit runs low, so the
+  // 60 requests per hour of the unauthenticated API are shared fairly with the download counter. A GITHUB_TOKEN (public read) makes it instant.
+  // Numbers are kept in the data file and refreshed every 12 hours; a failure just keeps the old number.
+  const repoOf = new Map(); // plugin id -> "owner/name"
+  const starsRun = { at: 0, busy: false };
+  const STAR_TTL = 12 * 3600e3;
+  async function refreshStars() {
+    if (starsRun.busy || Date.now() - starsRun.at < o.starsEvery || !repoOf.size) return; // (repoOf is empty until the catalogue was read)
+    starsRun.busy = true; starsRun.at = Date.now();
+    try {
+      const stars = store.data.stars || (store.data.stars = {});
+      const repos = [...new Set(repoOf.values())].filter((r) => !stars[r] || Date.now() - stars[r].at > STAR_TTL).sort((a, b) => ((stars[a] && stars[a].at) || 0) - ((stars[b] && stars[b].at) || 0));
+      const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'nodegsm-website', 'X-GitHub-Api-Version': '2022-11-28' };
+      if (o.githubToken) headers.Authorization = 'Bearer ' + o.githubToken;
+      for (const r of repos.slice(0, o.githubToken ? 60 : 10)) {
+        const res = await fetch(`${o.githubApi}/repos/${r}`, { headers, signal: AbortSignal.timeout(8000) });
+        if (res.status === 404 || res.status === 451) { stars[r] = { n: -1, at: Date.now() }; store.touch(); continue; } // gone / blocked: do not ask again for 12 hours
+        if (!res.ok) break; // rate limited or GitHub trouble: try again next run
+        const j = await res.json();
+        stars[r] = { n: Number(j.stargazers_count) || 0, at: Date.now() }; store.touch();
+        if (Number(res.headers.get('x-ratelimit-remaining')) <= 12 && res.headers.get('x-ratelimit-remaining') !== null) break; // keep some budget for the download counter
+      }
+    } catch { /* keep what we have */ }
+    starsRun.busy = false;
+  }
+
   // ---- views
-  const rating = (p, client) => { const v = Object.values(p.ratings); return { avg: v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0, count: v.length, mine: (client && p.ratings[client]) || 0 }; };
+  const rating =(p, client) => { const v = Object.values(p.ratings); return { avg: v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0, count: v.length, mine: (client && p.ratings[client]) || 0 }; };
   const view = (p, client) => ({
     rating: rating(p, client), downloads: p.downloads,
     comments: p.comments.slice(-200).reverse().map((c) => ({ id: c.id, name: c.name, text: c.text, at: c.at })),
@@ -173,6 +205,12 @@ function createApp(opts = {}) {
     if (parts[0] === 'ratings' && m === 'GET') {
       const out = {}; for (const [id, p] of Object.entries(store.data.plugins)) { const r = rating(p); if (r.count || p.downloads) out[id] = { avg: r.avg, count: r.count, downloads: p.downloads }; }
       return send(res, 200, out);
+    }
+    if (parts[0] === 'stars' && m === 'GET') {
+      knownIds(); refreshStars(); // answers with what is known now; the refresh runs in the background
+      const st = store.data.stars || {}, out = {};
+      for (const [id, r] of repoOf) if (st[r] && st[r].n >= 0) out[id] = { stars: st[r].n, repo: r };
+      return send(res, 200, out, { 'Cache-Control': 'public, max-age=300' });
     }
     if (parts[0] === 'stats' && m === 'GET') {
       const a = await appStats(); const all = Object.values(store.data.plugins); const sum = (f) => all.reduce((t, p) => t + f(p), 0);

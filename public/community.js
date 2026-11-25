@@ -70,6 +70,12 @@
       if (this.mode !== 'api') return null;
       try { return await api('/stats'); } catch { return null; }
     },
+    // { pluginId: { stars, repo } }: GitHub stars of each plugin's source repository (filled by the server over time; {} without the API)
+    async stars() {
+      await this.ready;
+      if (this.mode !== 'api') return {};
+      try { return await api('/stars'); } catch { return {}; }
+    },
     // { id: {avg,count,downloads} } for the plugin list
     async summaries() {
       await this.ready;
