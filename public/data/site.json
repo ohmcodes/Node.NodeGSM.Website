@@ -4,7 +4,7 @@
  "pluginCount": 46,
  "featureCounts": {
   "done": 74,
-  "untested": 38,
+  "untested": 45,
   "planned": 5
  },
  "groups": [
@@ -282,9 +282,39 @@
      "notes": "`src/server/headless.js`; same API table as the IPC (`POST /api/<channel>`), live status / console / metrics over `/ws`; automated tests run on Windows, no real-world use yet - [docs/GUIDE-web-linux.md](docs/GUIDE-web-linux.md)"
     },
     {
-     "feature": "Web mode security: token login (env or generated `<data>/web-token`, 0600), constant-time compare, signed in-memory sessions (`HttpOnly`, `SameSite=Strict`, `Secure` behind HTTPS), bearer token for scripts, failed-login rate limit, Origin / CSRF check, JSON only, body limit, strict static path confinement, loopback bind by default, refuses a public bind without auth",
+     "feature": "Web mode security: **user accounts** (username + password hashed with scrypt, roles owner / admin / viewer), optional **TOTP two-factor** with one-time recovery codes, per-account lockout + per-address rate limit, first-time setup page, server-side sessions (list / revoke, idle + absolute timeout, `HttpOnly`, `SameSite=Strict`, `Secure` behind HTTPS, HSTS with `--https`), Origin / CSRF check, JSON only, body limit, strict static path confinement, loopback bind by default",
      "status": "🧪",
-     "notes": "No accounts / roles (one shared token); no built-in TLS (reverse proxy) - see [docs/OPEN-QUESTIONS.md](docs/OPEN-QUESTIONS.md)"
+     "notes": "`src/server/users.js`, `totp.js`, `webAccess.js`, `auth.js`; covered by headless tests (setup, roles, 2FA, lockout, limited sessions, audit log); not run on a real internet-facing host. No built-in TLS (reverse proxy) - see [docs/GUIDE-web-linux.md](docs/GUIDE-web-linux.md#putting-nodegsm-on-the-internet)"
+    },
+    {
+     "feature": "**Require two-factor** for every account (`--require-2fa`, `NODEGSM_REQUIRE_2FA=1`, or the Settings checkbox): an account without 2FA gets a limited session that can only open the account page (`/account.html`) until it is set up",
+     "status": "🧪",
+     "notes": "`LIMITED_OK` channels in `webAccess.js`"
+    },
+    {
+     "feature": "Roles: **owner** (everything, accounts, data folder, plugin installs), **admin** (everything else), **viewer** (read-only: no files, configs, console commands, settings or backup downloads)",
+     "status": "🧪",
+     "notes": "Enforced per API channel in `webAccess.authorize()` for browser sessions; the desktop window is the local owner"
+    },
+    {
+     "feature": "Account page `/account.html`: change password (needs the old one, signs other sessions out), set up / turn off 2FA, recovery codes, sign out other sessions",
+     "status": "🧪",
+     "notes": "`account.html` + `account.js`"
+    },
+    {
+     "feature": "Audit trail in the NGSM event log: `web:login`, `web:login-failed`, `web:login-blocked`, `web:user-created`, `web:password-reset`, `web:2fa-on` / `off`, `web:session-revoked` ... (address and account only, never a password / token / code)",
+     "status": "🧪",
+     "notes": "Visible under Logs"
+    },
+    {
+     "feature": "The shared access token only proves control of the machine: it creates the first owner (setup page) and is refused for sign-in once an account exists; as a Bearer token it only works for direct local clients (no proxy headers)",
+     "status": "🧪",
+     "notes": "Scripts should use a local connection or a dedicated account"
+    },
+    {
+     "feature": "**Web access in the desktop app** (Settings > Web access): serve the browser UI from the running app (same servers, one manager), address (this computer only / all interfaces), port, HTTPS-proxy and proxy-trust flags, require 2FA, live status with Open / Copy address, account and session management; starts with the app; with **Start NodeGSM on Windows login** the app starts hidden in the tray when Web access is on",
+     "status": "🧪",
+     "notes": "`settings.web`, `src/main/main.js` (`applyWeb`), `src/renderer/webAccessView.js`. Listening on the network is refused until an owner account exists. A reboot only brings it back after the user signs in to Windows (a Windows service is not built)"
     },
     {
      "feature": "Web UI: same renderer in both modes (`transport-web.js` = `window.wgsm` over fetch + WebSocket, auto-reconnect), login page, desktop-only controls hidden (folder picker, open folder, plugin install dialogs, tray, start on login, hardware acceleration, restart), backups **Download** endpoint",
@@ -602,6 +632,11 @@
      "notes": "`%APPDATA%\\node-wgsm2026\\WGSM` if present, else `%APPDATA%\\NodeGSM`; on Linux `$XDG_DATA_HOME/NodeGSM` (default `~/.local/share/NodeGSM`); Settings can move it to the NodeGSM folder"
     },
     {
+     "feature": "Automated GitHub release on a version tag",
+     "status": "🧪",
+     "notes": "`.github/workflows/release.yml` builds the installer + portable exe and publishes a GitHub Release; written but not yet run on GitHub"
+    },
+    {
      "feature": "Choose the data folder (Settings -> Data location)",
      "status": "✅",
      "notes": "**Change folder...** copies everything to an empty folder with progress, then restarts; **Use existing data...** points at a folder that already holds NodeGSM data; **Use the standard folder**; the old folder is never deleted; refused while a server runs or an install / update is in progress; stored in `data-location.txt` outside the data folder; `NODEGSM_DATA` overrides it"
@@ -620,6 +655,48 @@
   }
  ],
  "changelog": [
+  {
+   "title": "2026-11-25 - Web access in the desktop app and real accounts for the web mode",
+   "items": [
+    "**Added:** **Settings > Web access** in the desktop app: turn browser access on, choose the address and port, see the live address (Open / Copy). The web UI is served by the running app with the same servers (no second manager), and it starts again with the app. With **Start NodeGSM on Windows login** the app starts hidden in the tray when Web access is on, so the page is back after a reboot and sign-in.",
+    "**Added:** **accounts** for the web mode (headless and embedded): first-time setup page (the access token is only used once to create the owner), username + password (scrypt), roles **owner / admin / viewer**, per-account lockout on top of the per-address limit, no user enumeration, server-side sessions with idle and absolute timeout that can be listed and revoked, password change that signs other sessions out.",
+    "**Added:** optional **TOTP two-factor authentication** (authenticator app, replay protected, 8 one-time recovery codes) and **Require two-factor** (`--require-2fa` / Settings): accounts without 2FA only reach the new account page `/account.html`.",
+    "**Changed:** once an account exists the shared token no longer signs in on the web page; as a Bearer token it is accepted only from a direct local client (no `X-Forwarded-For` / proxy headers). The bind address, port and HTTPS flags cannot be changed from the browser, only from the desktop app or the settings file. Backups cannot be downloaded by viewers. HSTS is sent with `--https`.",
+    "**Added:** sign-ins, failures, lockouts and account changes go to the NGSM event log (never passwords, tokens or codes). New `web*` API channels (see [docs/TECH-api.md](docs/TECH-api.md)), `settings.web`, `GET /auth/status`, `POST /setup`.",
+    "**Docs:** README, `docs/GUIDE-web-linux.md` (accounts, roles, 2FA, \"Putting NodeGSM on the internet\"), `docs/TECH-architecture.md`, `docs/TECH-api.md`, Docker / systemd comments.",
+    "**Fixed (test):** the Linux-declared plugin check no longer fails when the Catalogue declares Linux for more plugins than the original four.",
+    "**Not verified:** nothing ran on a real internet-facing host or a real Linux box; the Electron embedding (`applyWeb`) was checked by reading and by the headless tests of the shared parts, not by launching the packaged app; no Windows service for an unattended reboot."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Steam dedicated server plugins in the Catalogue",
+   "items": [
+    "**Added:** 18 plugins in the Catalogue repository for Steam dedicated-server tools that were not there yet (Pavlov VR, Day of Infamy, Black Mesa, ATLAS, Natural Selection 2, Rising Storm 2, Tower Unite and others). Found through Steam store search plus SteamCMD app info; app ids already in the catalogue were skipped, so there are no duplicates. Tagged `steam-import` and `needs-work`.",
+    "**Not verified:** ports, launch arguments and defaults are starting points and have not been run against real servers; icons are placeholders."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Community WindowsGSM plugins imported into the Catalogue",
+   "items": [
+    "**Added:** 127 plugins in the Catalogue repository, converted from public `<owner>/WindowsGSM.<Game>` GitHub repos with the website converter (one repo per game: latest push, then most stars). Metadata, app id, executable, start command line and default ports only; no C# was copied. Each README credits the source repo; most carry the `windowsgsm-import` tag, and ones that still need install or hook work also carry `needs-work`.",
+    "**Not verified:** none of the imported plugins has been run against a real server, and they all use a placeholder icon."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Guided issue templates",
+   "items": [
+    "**Added:** `.github/ISSUE_TEMPLATE/report-issues.md` and `feature-request.md`, written like the Catalogue's game request (a prefilled body with a prompt per detail), plus `config.yml` linking to \"Request a game\". The website's issues link (\"Report an issue\") now opens the `report-issues.md` template directly instead of the raw issue list.",
+    "**Not verified:** the templates have not been rendered on GitHub yet."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Automated GitHub releases",
+   "items": [
+    "**Added:** `.github/workflows/release.yml`. Pushing a tag like `v0.2.0` (made by `npm version minor`, then `git push --follow-tags`) runs the tests, checks that the tag equals the `package.json` version, builds the NSIS installer and portable exe with electron-builder and publishes them (plus `latest.yml` and the blockmap) to a GitHub Release with generated notes. Tags with a dash (`v0.2.0-beta.1`) become pre-releases. It can also be started by hand for an existing tag.",
+    "**Docs:** README \"Build an exe\" and CONTRIBUTING describe the release steps.",
+    "**Not verified:** the workflow has not run on GitHub yet. Builds stay unsigned."
+   ]
+  },
   {
    "title": "2026-11-25 - Choose where NodeGSM keeps its data",
    "items": [
