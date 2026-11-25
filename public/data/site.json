@@ -4,8 +4,8 @@
  "pluginCount": 46,
  "featureCounts": {
   "done": 74,
-  "untested": 45,
-  "planned": 5
+  "untested": 47,
+  "planned": 3
  },
  "groups": [
   {
@@ -118,8 +118,8 @@
     },
     {
      "feature": "Scanning of `logging.logFiles` (game log files) by the NGSM log",
-     "status": "⏳",
-     "notes": "Declared and validated, but only console lines are matched"
+     "status": "🧪",
+     "notes": "`EventLog.scanFiles()`, every 2 s for running servers, new lines only, rotation / truncation followed, same `logging.patterns` and rate limit as console lines; unit-tested with a fake log file, no shipped plugin declares `patterns` for a log-only game yet"
     }
    ]
   },
@@ -272,9 +272,9 @@
      "notes": "See the slash-command rows below"
     },
     {
-     "feature": "Scheduled (cron) backups per server",
-     "status": "⏳",
-     "notes": "Only manual, bulk, backup-on-start and retention exist"
+     "feature": "**Scheduled (cron) backups** per server: enable + cron expression (presets: daily, every 6 / 12 hours, hourly, weekly) in the **Backups** tab, using the Full / Neat pick options chosen there; retention (`backupKeep`) applies",
+     "status": "🧪",
+     "notes": "`backupSchedule` in `wgsm.json`, `ServerManager.scheduledBackupTick` (every minute, local time, once per minute, skipped while the server is busy, a run missed while NodeGSM was closed is not made up); unit-tested with a fake clock, not observed over a real night"
     },
     {
      "feature": "**Web mode**: headless server (`npm run serve`, `nodegsm` bin): the same ServerManager and services, controlled from a browser over HTTP + WebSocket",
@@ -655,6 +655,23 @@
   }
  ],
  "changelog": [
+  {
+   "title": "2026-11-25 - Game log files feed the NGSM log",
+   "items": [
+    "**Added:** plugin `logging.logFiles` is now scanned. While a server runs, NodeGSM reads the new lines of those files (relative to the server files, `*` allowed in the file name, newest match) every 2 seconds and matches them with the plugin's `logging.patterns`, exactly like console lines (same levels, same `game:<id>` / `pattern:<id>` events, same 10 s rate limit per pattern). The first look at a file starts at its end, rotated or truncated files are followed, a stopped server is forgotten and re-scanned from the end after a restart.",
+    "**Docs:** `PLUGINS.md` (here and in the Catalogue repository), `docs/GUIDE-logging.md`, README.",
+    "**Not verified:** tested with a fake log file only, not with a real game's log; plugins in the Catalogue that need it still have to declare `patterns`."
+   ]
+  },
+  {
+   "title": "2026-11-25 - Scheduled backups",
+   "items": [
+    "**Added:** per-server **scheduled backups**. Backups tab > **Scheduled backup**: switch on, pick a preset (every day 04:00, every 6 / 12 hours, hourly, every Sunday 04:00) or type a 5-field cron expression, press **Save schedule**; the schedule uses the Full / Neat pick options (presets, folders, excludes, server settings) that are chosen on that tab at that moment. The tab shows the next run. Works with the server running or stopped; \"Keep the newest N\" removes old ones; a backup that is already running or a busy server (update, install ...) skips that minute. Runs missed while NodeGSM was closed are not made up. Results appear in the NGSM log as normal `server:backup` events.",
+    "**Technical:** `backupSchedule { enabled, cron, options }` in the server's `wgsm.json` (validated by `settings.sanitizeBackupSchedule`, a bad cron is refused on save), `ServerManager.scheduledBackupTick()` called from the existing 1-minute `cronTick`, `backupInfo` also returns `schedule` and `nextRun`.",
+    "**Docs:** `docs/GUIDE-backups.md`, `docs/TESTING-CHECKLIST.md`, README.",
+    "**Not verified:** not observed over a real night or with a multi-GB server; times use the computer's local time zone (including daylight saving changes)."
+   ]
+  },
   {
    "title": "2026-11-25 - Web access in the desktop app and real accounts for the web mode",
    "items": [
