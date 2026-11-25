@@ -64,7 +64,7 @@
 <section><div class="wrap"><div class="cta-band reveal">
   <h2>Missing your game? <span class="grad">Add it.</span></h2>
   <p class="mute" style="max-width:560px;margin:0 auto 24px">A plugin is a folder with one JSON file. Copy the template, fill in the exe and ports, open a pull request. The community keeps every game up to date.</p>
-  <div class="cta"><a class="btn primary" id="prLink" href="#" target="_blank" rel="noopener">Plugin guide</a><a class="btn" href="plugins.html">Community plugins</a></div>
+  <div class="cta"><a class="btn primary" id="prLink" href="#">Plugin guide</a><a class="btn" href="plugins.html">Community plugins</a></div>
 </div></div></section>
 </main>
 <script src="config.js"></script>
@@ -72,7 +72,7 @@
 <script>
 (async () => {
   const C = window.NODEGSM_SITE;
-  document.getElementById('prLink').href = C.CATALOGUE_REPO + '/blob/main/CONTRIBUTING.md';
+  document.getElementById('prLink').href = 'contributing.html';
   try {
     const CAT = new URL(C.CATALOG_URL.replace(/\/?$/, '/'), location.href);
     const [s, p] = await Promise.all([$json('data/site.json'), $json(new URL('index.json', CAT).href)]);

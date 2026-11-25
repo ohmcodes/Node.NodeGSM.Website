@@ -10,6 +10,9 @@ This repository is independent of the app and of the plugin list:
 | The plugin list (games) | https://github.com/ohmcodes/Node.NodeGSM.Catalogue (the site only **reads** it) |
 | This site, its ratings / comments / community info | here |
 
+## Contributing page
+`public/contributing.html` renders `public/data/contributing.md`, a copy of the Catalogue repository's `CONTRIBUTING.md` (links in it are rewritten to the Catalogue repo). `npm run sync:app` refreshes the copy from `../Node.NodeGSM.Catalogue`.
+
 ## Plugins page
 Each plugin is a card with the **image** of the game, **title**, **maker** (and contributor count), **short description** and **rating**. Click a card for more info: full description, README, documentation links, ports, config files, screenshots, download, comments and the community-editable info.
 
@@ -64,7 +67,7 @@ Not built yet: accounts, per-IP bans, a moderation UI (use the admin endpoints),
 - **Static only:** `.github/workflows/site.yml` publishes `public/` to GitHub Pages (enable Pages → GitHub Actions). Pages cannot run the backend, so host the API elsewhere and set `API_URL` in `public/config.js` and `ALLOWED_ORIGINS` on it.
 
 ## Files
-`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`), `server/` (`server.js`, `store.js`, `test.js`), `scripts/sync-app.js`.
+`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `contributing.html`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (`server.js`, `store.js`, `test.js`), `scripts/sync-app.js`.
 
 ## License
 MIT. Game names and icons belong to their owners.

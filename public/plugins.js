@@ -112,7 +112,7 @@
     } else {
       h += `<div class="steps" style="grid-template-columns:1fr"><div class="card"><h3>From inside NodeGSM</h3><p>Open <b>Games → Catalogue</b>, find this plugin and press <b>Install</b>. NodeGSM downloads the list once and keeps it, so it also works offline afterwards.</p></div>
         <div class="card"><h3>Manual install</h3><p>Download the zip, then in NodeGSM click <b>Games → Install plugin (ZIP)</b> and choose it.</p></div>
-        <div class="card"><h3>Improve it for everyone</h3><p>Edit <code>plugin.json</code> in the Catalogue repository and open a pull request. See the <a href="${C.CATALOGUE_REPO}/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">PR guide</a>.</p></div></div>`;
+        <div class="card"><h3>Improve it for everyone</h3><p>Edit <code>plugin.json</code> in the Catalogue repository and open a pull request. See the <a href="contributing.html">PR guide</a>.</p></div></div>`;
     }
     body.innerHTML = h;
     body.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { state.tab = b.dataset.tab; drawer(); }));

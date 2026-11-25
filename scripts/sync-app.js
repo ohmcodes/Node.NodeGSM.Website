@@ -39,4 +39,7 @@ fs.writeFileSync(OUT, JSON.stringify({
   featureCounts: { done: count('✅'), untested: count('🧪'), planned: count('⏳') },
   groups, changelog, repo: 'https://github.com/ohmcodes/Node.WGSM2026',
 }, null, 1));
+// contributing guide page: copy of the Catalogue repo's CONTRIBUTING.md (public/contributing.html renders it)
+const CG = path.resolve(process.argv[3] || path.join(__dirname, '..', '..', 'Node.NodeGSM.Catalogue', 'CONTRIBUTING.md'));
+if (fs.existsSync(CG)) { fs.copyFileSync(CG, path.join(path.dirname(OUT), 'contributing.md')); console.log('contributing guide updated'); }
 console.log(`site data updated: v${pkg.version}, ${groups.length} feature groups, ${changelog.length} changelog entries`);
