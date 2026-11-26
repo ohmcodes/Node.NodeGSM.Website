@@ -122,7 +122,7 @@
       <div>${rt.count ? $stars(rt.avg) + ` <span class="mute">${rt.avg.toFixed(1)} · ${rt.count} rating${rt.count > 1 ? 's' : ''}</span>` : '<span class="mute">No ratings yet</span>'}</div></div></div>
       ${people(p)}
       ${p.banner ? `<img class="banner" src="${$esc(p.banner)}" alt="">` : ''}<p class="mute" style="margin-top:0">${$esc(p.description || p.summary)}</p>
-      <div class="cta" style="justify-content:flex-start"><a class="btn primary" id="dlzip" href="${$esc(p.zip)}" download>⬇ Download plugin (.zip)</a>${p.source ? `<a class="btn" href="${$esc(p.source)}" target="_blank" rel="noopener">Source / edit on GitHub ↗</a>` : ''}${stars[p.id] ? `<a class="btn" href="https://github.com/${$esc(stars[p.id].repo)}" target="_blank" rel="noopener noreferrer" title="GitHub stars of the plugin's original repository">★ ${stars[p.id].stars.toLocaleString()} on GitHub</a>` : ''}</div>
+      <div class="cta" style="justify-content:flex-start"><a class="btn primary" id="openapp" href="nodegsm://install/${encodeURIComponent(p.id)}" title="Opens NodeGSM and asks to install this plugin (NodeGSM must be installed)">▶ Install in NodeGSM</a><a class="btn" id="dlzip" href="${$esc(p.zip)}" download>⬇ Download plugin (.zip)</a>${p.source ? `<a class="btn" href="${$esc(p.source)}" target="_blank" rel="noopener">Source / edit on GitHub ↗</a>` : ''}${stars[p.id] ? `<a class="btn" href="https://github.com/${$esc(stars[p.id].repo)}" target="_blank" rel="noopener noreferrer" title="GitHub stars of the plugin's original repository">★ ${stars[p.id].stars.toLocaleString()} on GitHub</a>` : ''}</div>
       <div class="kv">${kv('Version', p.version)}${kv('Install', p.install + (p.steamAppId ? ' · app ' + p.steamAppId : ''))}${kv('Game port', (p.ports || {}).game)}${kv('Query port', (p.ports || {}).query)}${kv('Max players', p.maxPlayers)}${kv('Query', p.query)}</div>
       <div class="tabs">${[['info', 'Community info'], ['readme', 'Details'], ['comments', 'Comments' + (c ? ` (${c.comments.length})` : '')], ['install', 'How to install']].map(([k, t]) => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${t}</button>`).join('')}</div>`;
     if (p.hasScript) h += `<div class="note">This plugin includes a <code>plugin.js</code> script that runs with full access to your PC. Only install it if you trust the source, and read the code first.</div>`;
@@ -159,7 +159,7 @@
     }
     body.innerHTML = h;
     body.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => { state.tab = b.dataset.tab; drawer(); }));
-    const dz = body.querySelector('#dlzip'); if (dz) dz.onclick = () => Community.download(p.id);
+    for (const id of ['#dlzip', '#openapp']) { const dz = body.querySelector(id); if (dz) dz.onclick = () => Community.download(p.id); }
     const on = (id, fn) => { const el = body.querySelector('#' + id); if (el) el.onclick = fn; };
     on('editInfo', () => { body.querySelector('#editor').hidden = false; body.querySelector('#infoText').value = (c && c.info.text) || ''; try { body.querySelector('#infoName').value = localStorage.getItem('nodegsm.name') || ''; } catch { /* */ } });
     on('cancelInfo', () => (body.querySelector('#editor').hidden = true));

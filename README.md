@@ -27,6 +27,7 @@ The list is paginated: a **Per page** select (10, 20, 50 or 100; remembered in t
 
 Each plugin is a card with the **image** of the game, **title**, **maker** (and contributor count), **short description** and **rating**. Click a card for more info: full description, README, documentation links, ports, config files, screenshots, download, comments and the community-editable info.
 
+- **Install in NodeGSM:** the plugin panel has a button that opens `nodegsm://install/<id>`. NodeGSM (installed, version with link support) opens, asks "Install this plugin?" and installs it from the catalogue (sha256 checked). Without NodeGSM installed the browser does nothing, so **Download plugin (.zip)** stays next to it.
 - **Plugin data** (name, maker, summary, image, README, zip) comes from the Catalogue: `index.json` for the list, `plugins/<id>.json` for the detail of the opened plugin. Set the address in `public/config.js` → `CATALOG_URL` (default `https://ohmcodes.github.io/Node.NodeGSM.Catalogue/`).
 - **Website data** (ratings, comments, community info, download counts) is stored by this site's backend (`server/`), never in the plugin repository.
 
