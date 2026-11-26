@@ -3,7 +3,7 @@
  "name": "NodeGSM",
  "pluginCount": 46,
  "featureCounts": {
-  "done": 74,
+  "done": 75,
   "untested": 47,
   "planned": 3
  },
@@ -647,6 +647,11 @@
      "notes": "NSIS page after the install-folder page (skipped for silent installs and when a folder was already chosen); the portable .exe uses Settings instead"
     },
     {
+     "feature": "**Screenshots** of every screen (22 images, dark theme) in `docs/screenshots/`, shown in the README and on the website landing page; regenerated with `scripts/seed-demo.js` + `scripts/screenshots.js`",
+     "status": "✅",
+     "notes": "Real renderer against a throw-away demo data folder (no mock-ups); gallery and steps in [docs/SCREENSHOTS.md](docs/SCREENSHOTS.md). Not captured: the desktop-only Web access switch (Electron window) and light theme"
+    },
+    {
      "feature": "Documentation: guides, `TECH-api.md` (all IPC channels), `TECH-architecture.md`, `TECH-data-formats.md`, `docs/README.md` index, `OPEN-QUESTIONS.md`, `TESTING-CHECKLIST.md`",
      "status": "✅",
      "notes": "[docs/README.md](docs/README.md); a test fails when an IPC channel is missing from TECH-api.md"
@@ -655,6 +660,16 @@
   }
  ],
  "changelog": [
+  {
+   "title": "2026-11-25 - Screenshots of every feature",
+   "items": [
+    "**Added:** 22 screenshots in `docs/screenshots/` covering the server list, console, settings, automation, backups (scheduled backups), files, config files, table, configs, logs, clusters, system metrics, games, add server, settings, Web access, Discord (alerts, embed editor, bot) and the three web sign-in screens. They are in the README, in the new `docs/SCREENSHOTS.md` gallery and in the Website repository for the landing page and Features page.",
+    "**Technical:** `scripts/seed-demo.js` fills a throw-away loopback server with demo servers, backups, a cluster and log lines (refuses non-loopback addresses); `scripts/screenshots.js` captures the real renderer with a hidden Electron window (`npx electron scripts/screenshots.js <port> docs/screenshots dark`). Nothing is read from a real data folder.",
+    "**Fixed:** the web **My account** page (`account.html`) is now centred on wide windows instead of hugging the left edge.",
+    "**Docs:** README, `docs/SCREENSHOTS.md`, `docs/README.md`, `docs/GUIDE-ui.md`, CONTRIBUTING.",
+    "**Not verified:** the desktop-only Web access switch is not in the images (they come from the web UI); no light-theme set yet."
+   ]
+  },
   {
    "title": "2026-11-25 - Game log files feed the NGSM log",
    "items": [

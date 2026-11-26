@@ -158,3 +158,20 @@ details.card summary{cursor:pointer;word-break:break-word}
 @media(max-width:820px){.feed-cols{grid-template-columns:1fr}}
 .top{list-style:none;margin:0;padding:0;counter-reset:t}.top li{counter-increment:t;display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .top li:before{content:counter(t);width:22px;color:var(--mute);font-size:.85rem}.top li span{margin-left:auto;color:var(--mute);font-size:.85rem}.top img{width:28px;height:28px;border-radius:7px}
+/* app screenshots: hero frame, gallery, lightbox */
+.shot{margin:56px auto 0;max-width:1100px;border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 30px 120px rgba(139,92,255,.25);overflow:hidden}
+.shot .bar{display:flex;gap:7px;padding:12px 16px;border-bottom:1px solid var(--line)}.shot .bar i{width:11px;height:11px;border-radius:50%;background:#2a3050}
+.shot img{display:block;width:100%;height:auto}
+.gal{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr))}
+.gal-i{display:block;text-align:left;font:inherit;color:inherit;padding:0;cursor:zoom-in;border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden;transition:.25s}
+.gal-i:hover{border-color:rgba(77,243,255,.4);transform:translateY(-3px);box-shadow:0 12px 40px rgba(77,243,255,.1)}
+.gal-i img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line)}
+.gal-i span{display:block;padding:14px 16px;color:var(--mute);font-size:.9rem}.gal-i b{display:block;color:var(--text);font:600 1rem "Space Grotesk",sans-serif;margin-bottom:2px}
+.lb{position:fixed;inset:0;z-index:100;background:rgba(3,4,10,.92);display:flex;align-items:center;justify-content:center;padding:24px}
+.lb[hidden]{display:none}
+.lb figure{margin:0;max-width:min(1500px,100%);max-height:100%;display:flex;flex-direction:column;align-items:center;gap:12px}
+.lb img{max-width:100%;max-height:calc(100vh - 120px);height:auto;border:1px solid var(--line);border-radius:12px;box-shadow:0 30px 120px rgba(139,92,255,.3)}
+.lb figcaption{color:var(--mute);text-align:center;max-width:800px}.lb figcaption b{color:var(--text)}
+.lb button{position:absolute;background:rgba(255,255,255,.08);border:1px solid var(--line);color:var(--text);width:44px;height:44px;border-radius:50%;font-size:1.6rem;line-height:1;cursor:pointer}
+.lb button:hover{border-color:var(--a)}.lb .x{top:16px;right:16px}.lb .p{left:16px;top:50%}.lb .n{right:16px;top:50%}
+@media(max-width:640px){.lb .p,.lb .n{top:auto;bottom:16px}.lb .p{left:calc(50% - 52px)}.lb .n{right:calc(50% - 52px)}}

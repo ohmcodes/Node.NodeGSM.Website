@@ -10,6 +10,9 @@ This repository is independent of the app and of the plugin list:
 | The plugin list (games) | https://github.com/ohmcodes/Node.NodeGSM.Catalogue (the site only **reads** it) |
 | This site, its ratings / comments / community info | here |
 
+## App screenshots
+The landing page (hero image and the "See it in action" gallery) and the Features page (all screens) show real screenshots of the app. They live in `public/assets/screens/` and are listed, with captions, in `public/screens.js` (`home: 1` marks the ones on the landing page). They are **copied from the app repository** (`docs/screenshots/`, made by `scripts/screenshots.js` there, see its `docs/SCREENSHOTS.md`): after the app's screens change, copy the PNGs over, adjust the captions in `screens.js` if needed and commit. A click opens a lightbox (arrow keys and Esc work).
+
 ## Activity feed
 `/feed.html` lists recent activity (new and updated plugins, ratings, comments, community info edits, downloads) with type filters, plus a **Most downloaded** list. It needs the site server, because activity comes from every visitor (in local-only mode the page says so). Events live in `community.json`; the page refreshes every minute.
 

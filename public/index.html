@@ -24,22 +24,9 @@
     <div class="stat"><b class="grad">1-click</b><span>SteamCMD installs</span></div>
     <div class="stat"><b class="grad">MIT</b><span>Free forever</span></div>
   </div>
-  <div class="mock reveal" aria-hidden="true">
+  <div class="shot reveal">
     <div class="bar"><i></i><i></i><i></i></div>
-    <div class="body">
-      <aside><div class="on">Servers <span>3</span></div><div>Games</div><div>Backups</div><div>Schedules</div><div>Settings</div></aside>
-      <main>
-        <span class="ln"><span class="dot"></span> <b style="color:#fff">Rust</b> · <span class="ok">Started</span> · 18/50 players · CPU 12%</span>
-        <span class="ln"><span class="dot"></span> <b style="color:#fff">Palworld</b> · <span class="ok">Started</span> · 6/32 players</span>
-        <span class="ln"><span class="dot" style="background:var(--warn);box-shadow:0 0 8px var(--warn)"></span> <b style="color:#fff">Minecraft</b> · <span class="wa">Updating 62%</span></span>
-        <span class="ln">&nbsp;</span>
-        <span class="ln cy">&gt; steamcmd +app_update 258550 validate</span>
-        <span class="ln">Update state (0x61) downloading, progress: 62.31 (4.1 / 6.6 GB)</span>
-        <span class="ln ok">[ok] Rust installed in 4m 12s</span>
-        <span class="ln">[Server] Server startup complete.</span>
-        <span class="ln">[Query] a2s ok · players 18</span>
-      </main>
-    </div>
+    <img src="assets/screens/01-server-list.png" width="1440" height="900" alt="NodeGSM showing a server list, the live console of the selected server, its details and quick settings">
   </div>
 </div></section>
 
@@ -54,6 +41,12 @@
     <div class="card reveal"><div class="ico">🔔</div><h3>Alerts &amp; monitoring</h3><p>Discord webhook alerts, player counts via A2S / UT3 / FiveM queries, system metrics in the header.</p></div>
   </div>
   <p class="center" style="margin-top:28px"><a href="features.html">See every feature and the changelog →</a></p>
+</div></section>
+
+<section id="screens"><div class="wrap">
+  <div class="sec-h reveal"><h2>See it <span class="grad">in action</span></h2><p>Real screenshots of the app. Click one to enlarge.</p></div>
+  <div class="gal" id="gal"></div>
+  <p class="center" style="margin-top:28px"><a href="features.html#screens">All screenshots →</a></p>
 </div></section>
 
 <section><div class="wrap">
@@ -71,6 +64,8 @@
 <script src="config.js"></script>
 <script src="layout.js"></script>
 <script src="community.js"></script>
+<script src="screens.js"></script>
+<script>Screens.render(document.getElementById('gal'), { home: true });</script>
 <script>
 // total downloads of the app (GitHub releases, counted by the site API); the tile stays hidden without the API or before the first release
 Community.stats().then((st) => {
