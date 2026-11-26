@@ -40,6 +40,21 @@ To try an unpublished catalogue: build it in the Catalogue repo (`npm run build`
 ## Community backend (`server/`)
 `server.js` serves the static site **and** the API, with no dependencies. Data is one JSON file (`server/data/community.json`, atomic writes, gitignored): back it up. IPs are only stored hashed.
 
+### Server layout
+`server.js` is only the entry point; the work is split by job so each file stays small:
+
+| Path | Job |
+|---|---|
+| `config.js` | settings from environment variables (all variables are documented in its header) |
+| `app.js` | wires settings, store, services and routes together and creates the HTTP server |
+| `store.js` | the JSON data file (the one module to swap if you move to SQLite) |
+| `lib/` | building blocks without site logic: `http.js` (errors, JSON replies, body, CORS), `router.js`, `ratelimit.js`, `auth.js` (admin token, client id), `static.js`, `text.js`, `constants.js` |
+| `services/` | what the site does, with no HTTP: `community.js` (rate, comment, edit info, download, moderate, feed), `catalog.js` (reads the Catalogue index, detects new / updated plugins), `appStats.js` (app download counter), `stars.js` (GitHub stars) |
+| `routes/` | the API endpoints: `site.js` (health, ratings, stars, stats, feed), `plugins.js` (per plugin: community, download, rating, comments, info, moderation), `submissions.js` (converter submissions), `index.js` registers them |
+| `test*.js` | `npm test`: API, converter and submissions tests |
+
+To add an endpoint: put the logic in a `services/` function, its HTTP handler in a `routes/` file (check who is calling and the rate limit there, call one service function, send the result) and register it in `routes/index.js` if it is a new file.
+
 ```
 PORT=3013 ADMIN_TOKEN=<long random> node server/server.js
 ```
@@ -148,7 +163,7 @@ Restore: stop the container, extract the archive into the volume the same way, s
 **Storage:** one JSON file is enough for one instance and thousands of comments (writes are atomic). Move to SQLite only if the file grows past tens of MB or you want several instances; `server/store.js` is the one module to swap. MySQL is not needed.
 
 ## Files
-`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `feed.html` + `feed.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (`server.js`, `store.js`, `submissions.js`, `test.js`, `test-convert.js`, `test-submissions.js`), `test/fixtures/` (C# samples), `scripts/sync-app.js`, `Dockerfile`, `docker-compose.yml`, `.env.example`.
+`public/` (`index.html`, `features.html`, `download.html`, `plugins.html` + `plugins.js`, `feed.html` + `feed.js`, `contributing.html`, `convert.html` + `convert.js` + `convert-cs.js`, `admin-submissions.html` + `.js`, `layout.js`, `community.js`, `style.css`, `config.js`, `data/site.json`, `data/contributing.md`), `server/` (see *Server layout*), `test/fixtures/` (C# samples), `scripts/sync-app.js`, `Dockerfile`, `docker-compose.yml`, `.env.example`.
 
 ## License
 MIT. Game names and icons belong to their owners.

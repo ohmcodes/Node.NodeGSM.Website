@@ -15,7 +15,7 @@ class Store {
     return (this.data.plugins[id] = this.data.plugins[id] || { ratings: {}, comments: [], info: { text: '', rev: 0, by: '', at: 0, summary: '', history: [] }, downloads: 0 });
   }
   peek(id) { return this.data.plugins[id]; }
-  // converter submissions (website -> pull request to the Catalogue), see server/server.js
+  // converter submissions (website -> pull request to the Catalogue), see server/routes/submissions.js
   submission(sid) { return this.data.submissions[sid]; }
   submissions() { return Object.values(this.data.submissions); }
   // activity feed: newest first, capped. e = { t: 'rating'|'comment'|'info'|'download'|'new'|'update', id, ... } (never stores client ids or IPs)

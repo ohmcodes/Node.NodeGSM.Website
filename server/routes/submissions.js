@@ -8,7 +8,7 @@
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
-const { convertCs, checkSource, validatePluginJson, buildReadme, buildPrBody, LIMITS: CONV, ID_RE } = require('../public/convert-cs.js');
+const { convertCs, checkSource, validatePluginJson, buildReadme, buildPrBody, LIMITS: CONV, ID_RE } = require('../../public/convert-cs.js');
 
 const SID_RE = /^sub_[0-9a-f]{12}$/;
 const LIMITS = { source: CONV.source, json: CONV.json, readme: CONV.readme, body: 640 * 1024, contact: 100, name: 100, reason: 300, pending: 200 };
