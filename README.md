@@ -31,6 +31,9 @@ Each plugin is a card with the **image** of the game, **title**, **maker** (and 
 - **Plugin data** (name, maker, summary, image, README, zip) comes from the Catalogue: `index.json` for the list, `plugins/<id>.json` for the detail of the opened plugin. Set the address in `public/config.js` → `CATALOG_URL` (default `https://ohmcodes.github.io/Node.NodeGSM.Catalogue/`).
 - **Website data** (ratings, comments, community info, download counts) is stored by this site's backend (`server/`), never in the plugin repository.
 
+## Donations
+`public/layout.js` (shared header and footer) shows Buy Me a Coffee, PayPal and Patreon icons in the header and a **Support** column in the footer. Change the links in the `DONATE` list at the top of that file.
+
 ## Run it
 ```
 npm start        # site + community API on http://localhost:3013
