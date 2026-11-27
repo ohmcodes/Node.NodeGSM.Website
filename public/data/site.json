@@ -1,11 +1,11 @@
 {
- "version": "0.1.0",
+ "version": "0.0.1",
  "name": "NodeGSM",
  "pluginCount": 46,
  "featureCounts": {
-  "done": 76,
-  "untested": 51,
-  "planned": 3
+  "done": 80,
+  "untested": 53,
+  "planned": 1
  },
  "groups": [
   {
@@ -152,14 +152,14 @@
      "notes": "Falls back to per-browser storage (shown with a notice)"
     },
     {
-     "feature": "GitHub Pages workflows (Catalogue: publish; Website: static front end)",
+     "feature": "GitHub Pages workflow for the Catalogue (publish); the Website is a Node server at https://nodegsm.ohmcodes.com",
      "status": "🧪",
-     "notes": "Written, not run yet: enable Pages in both repositories"
+     "notes": "Pages is used for the Catalogue only; the workflow has not run yet (enable Pages there)"
     },
     {
      "feature": "Releases / download buttons",
-     "status": "⏳",
-     "notes": "Link to GitHub Releases; no release has been published yet"
+     "status": "🧪",
+     "notes": "Tagging `v0.0.1` runs `.github/workflows/release.yml` (tests, build, GitHub Release with the installer and the portable exe); the first release is not published yet"
     }
    ]
   },
@@ -262,9 +262,9 @@
      "notes": "Start, crash, auto restart, auto update, crontab; now sent by `services/discord.js`"
     },
     {
-     "feature": "Steam login for games that need a real account",
-     "status": "⏳",
-     "notes": "Anonymous only for now"
+     "feature": "**Steam account login** for games that only download for an account that owns them (plugin `install.account: true`, e.g. `dayz`): Settings > Steam account signs in once through SteamCMD (password and Steam Guard code are passed to SteamCMD, never stored by NodeGSM; only the account name is kept)",
+     "status": "🧪",
+     "notes": "Output parsing and the install path are unit-tested with fake SteamCMD output; never run against real Steam (needs your account, see the final-test list)"
     },
     {
      "feature": "Discord bot remote control",
@@ -290,6 +290,21 @@
      "feature": "**Require two-factor** for every account (`--require-2fa`, `NODEGSM_REQUIRE_2FA=1`, or the Settings checkbox): an account without 2FA gets a limited session that can only open the account page (`/account.html`) until it is set up",
      "status": "🧪",
      "notes": "`LIMITED_OK` channels in `webAccess.js`"
+    },
+    {
+     "feature": "**Operator** role (a viewer who can also start / stop / restart / kill, use the console, make and download backups, bulk start / stop / restart / backup) and **per-server permissions**: viewer and operator accounts can be limited to chosen servers (list, console, logs, backups, event log, metrics and live updates are filtered; clusters are hidden unless all members are allowed)",
+     "status": "✅",
+     "notes": "`src/server/scope.js`; owners and admins always see everything; unit-tested (not tried with a real browser session over a network)"
+    },
+    {
+     "feature": "**Two-factor setup from the desktop app**: Settings > Web access > Set up 2FA (or tick \"set up 2FA now\" when adding an account) shows the authenticator key, confirms with the first code and shows the 8 recovery codes once",
+     "status": "✅",
+     "notes": "`webUserTotpBegin` / `webUserTotpConfirm`; unit-tested"
+    },
+    {
+     "feature": "**Background start of the web mode on Windows** (Settings > Web access > Run without the app): a Task Scheduler task starts `headless.js` hidden (at sign-in, or at Windows start as SYSTEM with administrator rights), restarts it 30 s after a crash and logs to `logs/service.log`",
+     "status": "🧪",
+     "notes": "`src/main/service.js`; launcher text and task arguments unit-tested, the task itself was never created in this environment (see the final-test list). A scheduled task is used instead of an installed service because a real service needs a wrapper executable"
     },
     {
      "feature": "Roles: **owner** (everything, accounts, data folder, plugin installs), **admin** (everything else), **viewer** (read-only: no files, configs, console commands, settings or backup downloads)",
@@ -487,6 +502,11 @@
      "notes": "For games that take RCON settings on the command line (Rust)"
     },
     {
+     "feature": "**RCON in the style of mcrcon**: several commands per job (one per line, pause in seconds between them, like `mcrcon -w`), Minecraft `§` colour codes and ANSI shown as colours in RCON consoles",
+     "status": "✅",
+     "notes": "Scheduled commands and `Consoles.run`; colours are rendered in the renderer (escaped, no HTML from the server); remote hosts are deliberately not supported (loopback only)"
+    },
+    {
      "feature": "**Quick-command buttons** (plugin `consoles[].commands`: label, command, optional confirm) and **command history** per console in the Console tab",
      "status": "🧪",
      "notes": "`mc`, `csgo` and `rust` declare some; not tried with real servers"
@@ -617,9 +637,9 @@
      "notes": "Chosen with checkboxes in Settings; Tick = the worst tick metric of the running servers that have one (server names in the tooltip, coloured), `n/a` when none does"
     },
     {
-     "feature": "Footer links: Website, Discord, Donate (Patreon, PayPal, Buy Me a Coffee)",
-     "status": "🧪",
-     "notes": "All URLs live in `src/renderer/links.js` and are PLACEHOLDERS to replace"
+     "feature": "Footer links: Website, Donate (Patreon, PayPal, Buy Me a Coffee); Discord is hidden while its URL is empty",
+     "status": "✅",
+     "notes": "All URLs live in `src/renderer/links.js`; opened through `openExternal` (http / https only)"
     },
     {
      "feature": "Discord view: webhook + Send test, event toggles, embed editor + preview, bot settings",
@@ -685,6 +705,22 @@
   }
  ],
  "changelog": [
+  {
+   "title": "2026-11-25 - Install plugins from the website (nodegsm:// links)",
+   "items": [
+    "**Added:**"
+   ]
+  },
+  {
+   "title": "2026-11-27 - Steam login, operator role, per-server permissions, background start, mcrcon-style RCON, first version 0.0.1",
+   "items": [
+    "**Added:**",
+    "**Changed:** the app version starts at **0.0.1** (the first release is tagged `v0.0.1`); decisions recorded in OPEN-QUESTIONS (logo approved, `/send` stays off by default, no token encryption, no BattlEye / Telnet RCON, Pages for the Catalogue only).",
+    "**Technical:** `src/server/scope.js` (check / filter helpers), `WebAccess.scopeFor` / `scopeResult` / `scopePush`, `users.servers`, `SteamCMD.login / logout / parseLogin`, `src/main/service.js`, `rconSchedule[].wait`. New IPC channels `steamStatus`, `steamLogin`, `steamLogout`, `webUserServers`, `webUserTotpBegin`, `webUserTotpConfirm` (desktop only: `serviceStatus`, `serviceInstall`, `serviceUninstall`).",
+    "**Docs:** README, PLUGINS.md (both repositories), docs/GUIDE-web-linux.md, docs/TECH-api.md, docs/TECH-architecture.md, docs/TESTING-CHECKLIST.md (new **Final test** list), docs/OPEN-QUESTIONS.md.",
+    "**Not verified:** nothing here was run against real Steam, a real Windows task, or over a real network; those are the **Final test** items in the checklist."
+   ]
+  },
   {
    "title": "2026-11-25 - RCON: WebRCON, quick commands, history, scheduled commands, graceful stop",
    "items": [

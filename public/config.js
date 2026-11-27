@@ -10,6 +10,6 @@ window.NODEGSM_SITE = {
   API_URL: 'auto',
   REPO: 'https://github.com/ohmcodes/Node.NodeGSM',                      // the app
   CATALOGUE_REPO: 'https://github.com/ohmcodes/Node.NodeGSM.Catalogue',    // where plugins are added (pull requests)
-  DISCORD: '',   // invite link, shows up in the footer when set
-  DOMAIN: '',    // e.g. https://nodegsm.example
+  DISCORD: '',   // halted for now: no Discord community yet (the footer link only shows when this is set)
+  DOMAIN: 'https://nodegsm.ohmcodes.com',
 };
